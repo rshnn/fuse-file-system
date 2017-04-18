@@ -49,47 +49,54 @@
 void *sfs_init(struct fuse_conn_info *conn)
 {
     fprintf(stderr, "in bb-init\n");
-
     log_msg("\nsfs_init()\n");
-    struct sfs_state* state = SFS_DATA;
-    struct stat temp;
-    struct fuse_file_info file_info; 
-    char* path;
-    path = SFS_DATA->diskfile;
-    //disk open using sfs->state
-    //opendir on path
-    //
-
-    // int fd;
-    // if((fd = open(path, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IWGRP | S_IROTH | S_IWOTH | S_IXOTH)) < 0){
-    //   //error
-    // }
-
-    log_msg("path: \t %s\n", path);
+    log_msg(conn);
+    log_fuse_context(fuse_get_context());
     
-    disk_open(path);
+    disk_open(SFS_DATA->diskfile);
+    fprintf(stderr, "\tSuccessfully opened file.\n");
+    log_msg("\tSuccessfully opened file\n");
+
+    struct stat* root_stat = (struct stat)malloc(sizeof(struct stat));
+    lstat(SFS_DATA->diskfile, root_stat);
+
+    /* Initialize diskfile structure*/
+    if(root_stat->st_size == 0){
+
+        /*DO INIT STUFF*/
+        // Init superblock
+        // Init bitmaps (inode and data)
+        // Init inode_block
+        // Init data_block 
+        // Init root inode ("/")
+
+
+    }
+
+
+    /* Copy inode availability into fuse_context */
+    
+    /* Copy data availability into fuse_context */
+
+    /* Store root_ino */
    
     
-    fprintf(stderr, "here\n");
-    log_msg("successfully opened file\n");
 
 
     char biscuit[10] = "biscuit";
     block_write(1, (void*) biscuit);
-    disk_close();
-    log_msg("successful\n");
-    
+
     
     fprintf(stdout, "path: \t %s\n", (SFS_DATA)->diskfile);
 
-    // sfs_opendir(path, &file_info);
-    // sfs_getattr(path, &temp );
-
+    
 
     log_conn(conn);
     log_fuse_context(fuse_get_context());
 
+    
     return SFS_DATA;
+    
 }
 
 /**
@@ -102,6 +109,10 @@ void *sfs_init(struct fuse_conn_info *conn)
 void sfs_destroy(void *userdata)
 {
     log_msg("\nsfs_destroy(userdata=0x%08x)\n", userdata);
+    disk_close();
+
+    /* Free fuse_context stuff */
+
 }
 
 /** Get file attributes.

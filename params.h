@@ -23,10 +23,16 @@
 // maintain bbfs state in here
 #include <limits.h>
 #include <stdio.h>
+#include <stdint.h>
+
 struct sfs_state {
     FILE *logfile;
     char *diskfile;
+
+
+    uint32_t ino_root; 	// ino of root dir.  "/"
 };
+
 #define SFS_DATA ((struct sfs_state *) fuse_get_context()->private_data)
 
 #endif
