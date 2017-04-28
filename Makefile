@@ -242,7 +242,7 @@ target_alias =
 top_build_prefix = ../
 top_builddir = ..
 top_srcdir = ..
-sfs_SOURCES = sfs.c  fuse.h  log.c	log.h  params.h  block.c  block.h
+sfs_SOURCES = sfs.c  fuse.h  log.c	log.h  params.h  block.c  block.h  inode.c   inode.h  list.h 
 AM_CFLAGS = -D_FILE_OFFSET_BITS=64 -I/usr/local/include/fuse  
 LDADD = -pthread -L/usr/local/lib -lfuse  
 all: config.h

@@ -24,13 +24,26 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdint.h>
+#include "list.h"
+
+typedef struct{
+	int id;  			// id = ino for inodes or blocknum for dblocks
+	list_node_t node;
+}sfs_item;
+
+
 
 struct sfs_state {
     FILE *logfile;
     char *diskfile;
 
+    sfs_item* inode_cache;		// Array of sfs_items for all inodes
+    sfs_item* dblock_cache;		// Array of sfs_items for all dblocks
 
-    uint32_t ino_root; 	// ino of root dir.  "/"
+	list_node_t* free_inodes; 	// List of free inos (connected via sfs_item->node->next)
+	list_node_t* free_dblocks;  // Same for dblocks 
+
+    uint32_t ino_root; 			// ino of root dir.  "/"
 };
 
 #define SFS_DATA ((struct sfs_state *) fuse_get_context()->private_data)

@@ -5,39 +5,63 @@
 #ifndef SRC_INODE_H_
 #define SRC_INODE_H_
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+#include <stdlib.h>
 #include <unistd.h>     
 #include <sys/types.h>
-#include <sys/stat.h>
+#include <string.h>
 #include <stdint.h>     /*contains int32_t*/
+#include <sys/stat.h>
 #include <fuse.h>
-
+#include "block.h"
 
 /* File System parameters */
-#define SFS_N_BLOCKS        256     // Total number of inodes
-
-#define SFS_N_INODES        
-#define SFS_N_DBLOCKS               
+#define SFS_N_BLOCKS        ???     // Total number of blocks in the FS
+// #define BLOCK_SIZE 512           // Defined in block.h
 
 
-/*Specifications of inode block array */
-#define SFS_DIR_BLOCK       12      // Number of direct blocks
-#define SFS_INDIR_BLOCKS    1       // Number of indirect blocks
-#define SFS_DINDIR_BLOCKS   1       // Number of double indirect blocks
-#define SFS_INODE_N_BLOCKS  SFS_DIR_BLOCK + SFS_INDIR_BLOCKS + SFS_DINDIR_BLOCKS   
-                                    // Total number of direct/indirect blocks
+#define SFS_N_DBLOCKS       ???     // Number of blocks for data in the FS 
+#define SFS_N_INODES        ???     // Number of blocks for inodes in the FS
+#define SFS_INODES_P_BLOCK  4       // Number of inodes per block 
+#define SFS_N_INODES_TOTAL  (SFS_N_INODES * SFS_INODES_P_BLOCK)          
+                                    // Total number of inodes in the FS
+
+/* Specifications of inode block array */
+#define SFS_DIR_PTRS        ??      // Number of direct pointers
+#define SFS_INDIR_PTRS      ??      // Number of indirect pointers
+#define SFS_DINDIR_PTRS     ??      // Number of double indirect pointers
+#define SFS_TOTAL_PTRS      (SFS_DIR_BLOCK + SFS_INDIR_BLOCKS + SFS_DINDIR_BLOCKS)   
+                                    // Total number of pointers per inode
+
+/* Number of data blocks that a pointer points to  */
+#define SFS_DBLOCKS_PER_PTR  (BLOCK_SIZE / 4)
+#define SFS_DIR_BLOCKS      1 * SFS_DIR_PTRS 
+#define SFS_INDIR_BLOCKS    (SFS_DBLOCKS_PER_PTR * SFS_INDIR_PTRS) // 128 Blocks = 64KB
+#define SFS_DINDIR_BLOCKS   (SFS_DBLOCKS_PER_PTR * SFS_INDIR_PTRS) // 16384 Blocks = 8MB
+#define SFS_TOTAL_BLOCKS    (SFS_DIR_BLOCKS + SFS_INDIR_BLOCKS + SFS_DINDIR_BLOCKS)
+                            // Total number of data blocks supported by 1 inode
 
 
-#define SFS_MAX_FILE_NAME_LENGTH    32      // Maximum file length 
+/* Specifications of bitmaps.  Number of blocks required for */
+#define SFS_N_DATA_BM       (SFS_N_DBLOCKS / (BLOCK_SIZE * 8))
+#define SFS_N_INODE_BM      (SFS_N_INODES_TOTAL / (BLOCK_SIZE * 8))
 
-#define SFS_INVLD_INO         401     // An invalid ino number 
-#define SFS_INVLD_DBLOCK_NO   
+/* BlockNum Indexes */
+#define SFS_SUPERBLOCK_INDX     0       // Only requires 1 block  
+#define SFS_INODE_BM_INDX       1       
+#define SFS_INODEBLOCK_INDX     1 + SFS_N_INODE_BM 
+#define SFS_DATA_BM_INDX        SFS_INODEBLOCK_INDX + SFS_N_INODES
+#define SFS_DATABLOCK_INDX      SFS_DATA_BM_INDX + SFS_N_DATA_BM
 
 
+/* Invalid ID values */
+#define SFS_INVLD_INO       SFS_N_INODES_TOTAL      // An invalid ino number 
+#define SFS_INVLD_DBLOCK_NO SFS_N_DBLOCKS           // An invalid dblock number 
 
-
+/* Limits on file and direntry names */
+#define SFS_MAX_FILE_NAME_LENGTH    32      // Maximum file name length 
+#define SFS_MAX_DIRENTRY            64      // Maximum directory entry name
+    
 /*
     file-modes:
     https://www.gnu.org/software/libc/manual/html_node/Testing-File-Type.html
@@ -49,23 +73,22 @@ typedef struct __attribute__((packed)){
     uint32_t    mode;               // type of inode: dir/file/direct 
     uint32_t    size;               // total size of dir/file in bytes 
     uint32_t    num_blocks;         // total number of blocks 
-    // char        filename[SYS_MAX_FILE_NAME_SIZE]
 
     /* Do we need any of these */
     uint32_t    time_access;
     uint32_t    time_mod;
     uint32_t    time_change;
 
-    uint32_t    blocks[SFS_N_BLOCKS_INODE];   // direction and indirection blocks (store block nums)
-
+    uint32_t    blocks[SFS_N_BLOCKS_INODE];   
+                        // direction and indirection blocks (store block nums)
 }sfs_inode_t;
 
 
 typedef struct __attribute__((packed)) {
-    uint32_t    ino;
-    char        filenames[SFS_MAX_FILE_NAME_LENGTH]
+    uint32_t    ino;                                   // inode number
+    char        filename[SFS_MAX_FILE_NAME_LENGTH]     // file name 
 
-}sfs_dentry_t;
+}sfs_direntry_t;
 
 
 

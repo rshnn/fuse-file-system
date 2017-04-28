@@ -54,7 +54,6 @@ void *sfs_init(struct fuse_conn_info *conn)
     log_fuse_context(fuse_get_context());
     
     disk_open(SFS_DATA->diskfile);
-    fprintf(stderr, "\tSuccessfully opened file.\n");
     log_msg("\tSuccessfully opened file\n");
 
     struct stat* root_stat = (struct stat)malloc(sizeof(struct stat));
