@@ -23,13 +23,16 @@
 #define SFS_N_DBLOCKS       ???     // Number of blocks for data in the FS 
 #define SFS_N_INODES        ???     // Number of blocks for inodes in the FS
 #define SFS_INODES_P_BLOCK  4       // Number of inodes per block 
+#define SFS_INODE_SIZE      128     // Size of an inode struct in bytes
 #define SFS_N_INODES_TOTAL  (SFS_N_INODES * SFS_INODES_P_BLOCK)          
                                     // Total number of inodes in the FS
 
 /* Specifications of inode block array */
 #define SFS_DIR_PTRS        ??      // Number of direct pointers
-#define SFS_INDIR_PTRS      ??      // Number of indirect pointers
-#define SFS_DINDIR_PTRS     ??      // Number of double indirect pointers
+#define SFS_INDIR_PTRS      1       // Number of indirect pointers
+#define SFS_DINDIR_PTRS     1       // Number of double indirect pointers
+#define SFS_INDIR_INDX      SFS_DIR_PTRS
+#define SFS_DINDIR_INDX     SFS_INDIR_INDX+1
 #define SFS_TOTAL_PTRS      (SFS_DIR_BLOCK + SFS_INDIR_BLOCKS + SFS_DINDIR_BLOCKS)   
                                     // Total number of pointers per inode
 
@@ -48,19 +51,19 @@
 
 /* BlockNum Indexes */
 #define SFS_SUPERBLOCK_INDX     0       // Only requires 1 block  
-#define SFS_INODE_BM_INDX       1       
-#define SFS_INODEBLOCK_INDX     1 + SFS_N_INODE_BM 
-#define SFS_DATA_BM_INDX        SFS_INODEBLOCK_INDX + SFS_N_INODES
-#define SFS_DATABLOCK_INDX      SFS_DATA_BM_INDX + SFS_N_DATA_BM
+#define SFS_INODE_BM_INDX       1       // ''
+#define SFS_DATA_BM_INDX        2       // ''
+#define SFS_INODEBLOCK_INDX     SFS_DATA_BM_INDX + SFS_N_DATA_BM 
+#define SFS_DATABLOCK_INDX      SFS_INODEBLOCK_INDX + SFS_N_INODES
 
 
-/* Invalid ID values */
+/* Invalid ID values for failure reporting */
 #define SFS_INVLD_INO       SFS_N_INODES_TOTAL      // An invalid ino number 
-#define SFS_INVLD_DBLOCK_NO SFS_N_DBLOCKS           // An invalid dblock number 
+#define SFS_INVLD_DBNO      SFS_N_DBLOCKS           // An invalid dblock number 
 
 /* Limits on file and direntry names */
 #define SFS_MAX_FILE_NAME_LENGTH    32      // Maximum file name length 
-#define SFS_MAX_DIRENTRY            64      // Maximum directory entry name
+#define SFS_DIRENTRY_SIZE           64      // Maximum directory entry name
     
 /*
     file-modes:
@@ -73,7 +76,7 @@ typedef struct __attribute__((packed)){
     uint32_t    mode;               // type of inode: dir/file/direct 
     uint32_t    size;               // total size of dir/file in bytes 
     uint32_t    num_blocks;         // total number of blocks 
-
+    uint32_t    nlinks;             // number of hard links 
     /* Do we need any of these */
     uint32_t    time_access;
     uint32_t    time_mod;
@@ -86,7 +89,7 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)) {
     uint32_t    ino;                                   // inode number
-    char        filename[SFS_MAX_FILE_NAME_LENGTH]     // file name 
+    char        name[SFS_MAX_FILE_NAME_LENGTH]     // file name 
 
 }sfs_direntry_t;
 
