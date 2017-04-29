@@ -32,7 +32,7 @@ void get_inode(uint32_t ino, sfs_inode_t* rtn_inode){
 
 	log_msg("\nget_inode()...\n");
 
-	if (ino < SFS_NINODES) {
+	if (ino < SFS_N_INODES) {
 
 		/* Is this ino in the free list?*/
 		if ((SFS_DATA->inode_cache[ino].node.next 
@@ -44,11 +44,11 @@ void get_inode(uint32_t ino, sfs_inode_t* rtn_inode){
 			int inside_block_offset = ino % (BLOCK_SIZE / SFS_INODE_SIZE);
 
 			char buffer[BLOCK_SIZE];
-	    	block_read(SFS_BLOCK_INODES + block_offset, buffer);
+	    	block_read(SFS_INODEBLOCK_INDX + block_offset, buffer);
 
 		    log_msg("\tblock_offset: %d, inside_block_offset: %d", block_offset, inside_block_offset);
-	    	memcpy(inode_data, buffer + inside_block_offset*SFS_INODE_SIZE, sizeof(sfs_inode_t));
-		    log_msg("\tRequested ino (%d) found\n", inode_data->ino);
+	    	memcpy(rtn_inode, buffer + inside_block_offset*SFS_INODE_SIZE, sizeof(sfs_inode_t));
+		    log_msg("\tRequested ino (%d) found\n", rtn_inode->ino);
 		
 		} else {
 		
@@ -211,8 +211,8 @@ uint32_t ino_from_path(const char *path){
 uint32_t ino_from_path_dir(const char *path, uint32_t ino_parent) {
 	log_msg("ino_from_path_dir()...%s\n", path);
 
-	uint32_t ino_path = SFS_INVALID_INO;
-	char buffer[SFS_DENTRY_SIZE * SFS_NINODES];
+	uint32_t ino_path = SFS_INVLD_INO;
+	char buffer[SFS_DENTRY_SIZE * SFS_N_INODES];
 	memset(buffer, 0, sizeof(buffer));
 
 	sfs_inode_t inode;
@@ -271,7 +271,7 @@ void update_block_bitmap(uint32_t bno, char ch) {
 
 void update_inode_data(uint32_t ino, sfs_inode_t *inode) {
 	char buffer[BLOCK_SIZE];
-	inode->mtime = time(NULL);
+	inode->time_mod = time(NULL);
 
 	block_read(SFS_INODEBLOCK_INDX + ino / (BLOCK_SIZE / SFS_INODE_SIZE), buffer);
 	memcpy(buffer + ((ino % (BLOCK_SIZE / SFS_INODE_SIZE)) * SFS_INODE_SIZE), inode, sizeof(sfs_inode_t));
@@ -281,7 +281,7 @@ void update_inode_data(uint32_t ino, sfs_inode_t *inode) {
 }
 
 void update_block_data(uint32_t bno, char* buffer) {
-	block_write(SFS_BLOCK_DATA + bno, buffer);
+	block_write(SFS_DATABLOCK_INDX + bno, buffer);
 
 	log_msg("\nupdate_block_data()... \n\tSuccessful update\n");
 }
@@ -310,7 +310,7 @@ uint32_t get_new_ino(){
 	log_msg("\nget_new_ino()..\n");
 
 	// Are there any more inodes left? 
-	if(list_empty(SFS_DATA0->free_inodes)){
+	if(list_empty(SFS_DATA->free_inodes)){
 		log_msg("\tError.  No more inodes available.\n");
 	}else{
 
@@ -548,7 +548,7 @@ void read_direntry_block(uint32_t block_id, sfs_direntry_t* dentries, int num_en
 * 		params: inode struct, parent ino 
 *		return: none
 */
-void remove_direntry(){
+void remove_dentry(sfs_inode_t *inode, uint32_t ino_parent){
 
 }
 
@@ -579,7 +579,7 @@ uint32_t create_inode(const char* path, mode_t mode){
 		// Get a block to put it in 
 		uint32_t block_no = get_new_blockno();
 
-		if ((temp_ino != SFS_INVALID_INO) && (block_no != SFS_INVLD_DBNO)) {
+		if ((temp_ino != SFS_INVLD_INO) && (block_no != SFS_INVLD_DBNO)) {
 
 			// Update inode bitmap
 			update_inode_bitmap(temp_ino, '0');
@@ -590,7 +590,7 @@ uint32_t create_inode(const char* path, mode_t mode){
 			// Create inode struct
 			sfs_inode_t inode;
 			memset(&inode, 0, sizeof(inode));
-			inode.time_access = inode.time_mode = inode.time_change = time(NULL);
+			inode.time_access = inode.time_mod = inode.time_change = time(NULL);
 			inode.num_blocks = 1;
 			inode.ino = ino_path;
 			inode.blocks[0] = block_no;

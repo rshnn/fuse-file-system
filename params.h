@@ -43,7 +43,7 @@ struct sfs_state {
 	list_node_t* free_inodes; 	// List of free inos (connected via sfs_item->node->next)
 	list_node_t* free_dblocks;  // Same for dblocks 
 
-    uint32_t ino_root; 			// ino of root dir.  "/"
+    uint32_t root_ino; 			// ino of root dir.  "/"
 };
 
 #define SFS_DATA ((struct sfs_state *) fuse_get_context()->private_data)

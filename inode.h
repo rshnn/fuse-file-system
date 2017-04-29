@@ -20,7 +20,7 @@
 // #define BLOCK_SIZE 512           // Defined in block.h
 
 
-#define SFS_N_INODES        256     // Number of blocks for inodes in the FS
+#define SFS_N_INODES        256     // Number inodes in the FS
 #define SFS_INODES_P_BLOCK  4       // Number of inodes per block 
 #define SFS_INODE_SIZE      128     // Size of an inode struct in bytes
 #define SFS_N_INODE_BLOCKS  64     // Total number of inodes in the FS
@@ -49,7 +49,7 @@
 
 /* Specifications of bitmaps.  Number of blocks required for */
 #define SFS_N_DATA_BM       (SFS_N_DBLOCKS / (BLOCK_SIZE * 8))
-#define SFS_N_INODE_BM      (SFS_N_INODES_TOTAL / (BLOCK_SIZE * 8))
+#define SFS_N_INODE_BM      (SFS_N_INODES / (BLOCK_SIZE * 8))
 
 /* BlockNum Indexes */
 #define SFS_SUPERBLOCK_INDX     0       // Only requires 1 block  
@@ -60,7 +60,7 @@
 
 
 /* Invalid ID values for failure reporting */
-#define SFS_INVLD_INO       SFS_N_INODES_TOTAL      // An invalid ino number 
+#define SFS_INVLD_INO       SFS_N_INODES      // An invalid ino number 
 #define SFS_INVLD_DBNO      SFS_N_DBLOCKS           // An invalid dblock number 
 
 /* Limits on file and direntry names */
@@ -98,8 +98,33 @@ typedef struct __attribute__((packed)) {
 
 
 /* Functions */
-uint32_t ino_from_path(const char* path);
+
+void get_inode(uint32_t ino, sfs_inode_t* rtn_inode);
+int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset);
+int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offset);
+
+uint32_t ino_from_path(const char *path);
+uint32_t ino_from_path_dir(const char *path, uint32_t ino_parent);
+
+void update_inode_bitmap(uint32_t ino, char ch);
+void update_block_bitmap(uint32_t bno, char ch);
+void update_inode_data(uint32_t ino, sfs_inode_t *inode);
+void update_block_data(uint32_t bno, char* buffer);
+
+uint32_t get_new_ino();
+void free_ino(uint32_t ino);
+uint32_t get_new_blockno();
+void free_blockno(uint32_t dbno);
+
+
+void create_direntry(const char *name, sfs_inode_t *inode, uint32_t ino_parent);
+void read_direntries(sfs_inode_t *inode_data, sfs_direntry_t* dentries);
+void read_direntry_block(uint32_t block_id, sfs_direntry_t* dentries, int num_entries);
+void remove_direntry(sfs_inode_t *inode, uint32_t ino_parent);
+
+
 uint32_t create_inode(const char* path, mode_t mode);
+int remove_inode(const char *path);
 
 
 #endif
