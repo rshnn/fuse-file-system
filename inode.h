@@ -28,7 +28,7 @@
                                     // Total number of inodes in the FS
 
 /* Specifications of inode block array */
-#define SFS_DIR_PTRS        ??      // Number of direct pointers
+#define SFS_DIR_PTRS        12      // Number of direct pointers
 #define SFS_INDIR_PTRS      1       // Number of indirect pointers
 #define SFS_DINDIR_PTRS     1       // Number of double indirect pointers
 #define SFS_INDIR_INDX      SFS_DIR_PTRS
@@ -82,7 +82,7 @@ typedef struct __attribute__((packed)){
     uint32_t    time_mod;
     uint32_t    time_change;
 
-    uint32_t    blocks[SFS_N_BLOCKS_INODE];   
+    uint32_t    blocks[SFS_TOTAL_PTRS];   
                         // direction and indirection blocks (store block nums)
 }sfs_inode_t;
 

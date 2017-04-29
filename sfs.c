@@ -23,13 +23,14 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #ifdef HAVE_SYS_XATTR_H
 #include <sys/xattr.h>
 #endif
 
-#include "log.h"
 #include "inode.h"
+#include "log.h"
 
 
 ///////////////////////////////////////////////////////////
@@ -58,7 +59,7 @@ void *sfs_init(struct fuse_conn_info *conn)
     disk_open(SFS_DATA->diskfile);
     log_msg("\tSuccessfully opened file\n");
 
-    struct stat* root_stat = (struct stat)malloc(sizeof(struct stat));
+    struct stat* root_stat = (struct stat*)malloc(sizeof(struct stat));
     lstat(SFS_DATA->diskfile, root_stat);
 
     /* Initialize diskfile structure*/

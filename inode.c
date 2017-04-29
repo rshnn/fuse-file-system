@@ -2,10 +2,10 @@
 * inode.c
 */
 
-#include <errno.h>
+#include "inode.h" 
 #include "params.h"
 #include "block.h"
-#include "inode.h" 
+#include <errno.h>
 
 
 
