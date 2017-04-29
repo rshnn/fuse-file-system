@@ -30,6 +30,8 @@
 #endif
 
 #include "inode.h"
+#include "inode.c"
+
 #include "log.h"
 
 
