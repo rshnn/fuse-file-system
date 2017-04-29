@@ -363,7 +363,7 @@ void free_ino(uint32_t ino){
 			log_msg("\tError: Attempted to free an already free inode.\n");
 		}
 	}else{
-		log_msg("\tAttempted to free an invalid ino.\n")
+		log_msg("\tAttempted to free an invalid ino.\n");
 	}
 }
 
@@ -380,7 +380,7 @@ uint32_t get_new_blockno(){
 
 	// Very similar logic to get_new_ino()
 	if(list_empty(SFS_DATA->free_dblocks)){
-		log_msg("\tError:  No more data blocks available.\n")
+		log_msg("\tError:  No more data blocks available.\n");
 	}else{
 
 		list_node_t* my_dblock = SFS_DATA->free_dblocks;
@@ -395,7 +395,7 @@ uint32_t get_new_blockno(){
 			log_msg("\tFree dblock found successfully.\n");
 			return dblock_item->id;
 		}else{
-			log_msg("\tError: Free dblock could not be found.\n")
+			log_msg("\tError: Free dblock could not be found.\n");
 		}
 	}
 
@@ -428,7 +428,7 @@ void free_blockno(uint32_t dbno){
 			log_msg("\tError: Attempted to free an already free dblock.\n");
 		}
 	}else{
-		log_msg("\tError: Attempted to free an invalid dblock.\n")
+		log_msg("\tError: Attempted to free an invalid dblock.\n");
 	}
 
 
@@ -505,7 +505,7 @@ void read_direntries(sfs_inode_t *inode_data, sfs_direntry_t* dentries) {
 
 			log_msg("\tnum_entries=%d\n", num_entries);
 
-			if (num_blocks_read < SFS_NDIR_BLOCKS) {
+			if (num_blocks_read < SFS_DIR_PTRS) {
 				read_direntry_block(inode_data->blocks[num_blocks_read], dentries + entry_offset, num_entries);
 			}
 
@@ -536,7 +536,7 @@ void read_direntry_block(uint32_t block_id, sfs_direntry_t* dentries, int num_en
 	int bytes_read = 0;
 	while ((bytes_read < BLOCK_SIZE) && (entries_read < num_entries)) {
 		log_msg("\tEntries read = %d\n", entries_read);
-		memcpy(dentries + entries_read, buffer + bytes_read, sizeof(sfs_dentry_t));
+		memcpy(dentries + entries_read, buffer + bytes_read, sizeof(sfs_direntry_t));
 	    ++entries_read;
 	    bytes_read += SFS_DIRENTRY_SIZE;
 	}
@@ -592,14 +592,14 @@ uint32_t create_inode(const char* path, mode_t mode){
 			memset(&inode, 0, sizeof(inode));
 			inode.time_access = inode.time_mod = inode.time_change = time(NULL);
 			inode.num_blocks = 1;
-			inode.ino = ino_path;
+			inode.ino = temp_ino;
 			inode.blocks[0] = block_no;
 			inode.size = 0;
 			inode.nlink = 0;
 			inode.mode = mode;				
 
 			// Write inode to disk
-			update_inode_data(ino_path, &inode);
+			update_inode_data(temp_ino, &inode);
 
 			// Create direntry for inode
 			create_direntry(path+1, &inode, ino_from_path("/"));
@@ -610,7 +610,7 @@ uint32_t create_inode(const char* path, mode_t mode){
 
 
 	}else{
-		log_msg("\tError. inode already exists for given path: %s.", path)
+		log_msg("\tError. inode already exists for given path: %s.", path);
 	}
 
 

@@ -28,11 +28,11 @@
 #ifdef HAVE_SYS_XATTR_H
 #include <sys/xattr.h>
 #endif
+#include "log.h"
 
 #include "inode.h"
 #include "inode.c"
 
-#include "log.h"
 
 
 ///////////////////////////////////////////////////////////

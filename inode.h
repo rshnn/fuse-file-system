@@ -78,7 +78,7 @@ typedef struct __attribute__((packed)){
     uint32_t    mode;               // type of inode: dir/file/direct 
     uint32_t    size;               // total size of dir/file in bytes 
     uint32_t    num_blocks;         // total number of blocks 
-    uint32_t    nlinks;             // number of hard links 
+    uint32_t    nlink;             // number of hard links 
     /* Do we need any of these */
     uint32_t    time_access;
     uint32_t    time_mod;
