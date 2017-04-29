@@ -140,7 +140,7 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 
 	for (i = start_block_idx; (bytes_written < size) && (i < SFS_DIR_PTRS);++i) {
 		if (i >= inode_data->num_blocks) {
-			inode_data->blocks[i] = get_block_no();
+			inode_data->blocks[i] = get_new_blockno();
 			++num_new_blocks;
 			log_msg("\tNew block being allocated to this file for the write request.\n");
 		}
@@ -466,7 +466,7 @@ void create_direntry(const char *name, sfs_inode_t *inode, uint32_t ino_parent) 
 	int int_idx = num_dentries % (BLOCK_SIZE / SFS_DIRENTRY_SIZE);
 
 	if ((int_idx == 0) && (num_dentries != 0)) {
-		inode_parent.blocks[idx] = get_block_no();
+		inode_parent.blocks[idx] = get_new_blockno();
 		update_block_bitmap(inode_parent.blocks[idx], '0');
 		inode_parent.num_blocks += 1;
 	}
@@ -548,7 +548,7 @@ void read_direntry_block(uint32_t block_id, sfs_direntry_t* dentries, int num_en
 * 		params: inode struct, parent ino 
 *		return: none
 */
-void remove_dentry(sfs_inode_t *inode, uint32_t ino_parent){
+void remove_direntry(sfs_inode_t *inode, uint32_t ino_parent){
 
 }
 
