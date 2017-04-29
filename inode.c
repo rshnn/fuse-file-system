@@ -212,13 +212,13 @@ uint32_t ino_from_path_dir(const char *path, uint32_t ino_parent) {
 	log_msg("ino_from_path_dir()...%s\n", path);
 
 	uint32_t ino_path = SFS_INVLD_INO;
-	char buffer[SFS_DENTRY_SIZE * SFS_N_INODES];
+	char buffer[SFS_DIRENTRY_SIZE * SFS_N_INODES];
 	memset(buffer, 0, sizeof(buffer));
 
 	sfs_inode_t inode;
 	get_inode(ino_parent, &inode);
 
-	int num_dentries = (inode.size / SFS_DENTRY_SIZE);
+	int num_dentries = (inode.size / SFS_DIRENTRY_SIZE);
 	if (num_dentries > 0) {
 		log_msg("\tTotal direntries: %d\n", num_dentries);
 
