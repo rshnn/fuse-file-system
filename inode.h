@@ -16,12 +16,11 @@
 #include "block.h"
 
 /* File System parameters */
-#define SFS_N_BLOCKS        ???     // Total number of blocks in the FS
+// #define SFS_N_BLOCKS        ???     // Total number of blocks in the FS
 // #define BLOCK_SIZE 512           // Defined in block.h
 
 
-#define SFS_N_DBLOCKS       ???     // Number of blocks for data in the FS 
-#define SFS_N_INODES        ???     // Number of blocks for inodes in the FS
+#define SFS_N_INODES        256     // Number of blocks for inodes in the FS
 #define SFS_INODES_P_BLOCK  4       // Number of inodes per block 
 #define SFS_INODE_SIZE      128     // Size of an inode struct in bytes
 #define SFS_N_INODES_TOTAL  (SFS_N_INODES * SFS_INODES_P_BLOCK)          
@@ -33,17 +32,21 @@
 #define SFS_DINDIR_PTRS     1       // Number of double indirect pointers
 #define SFS_INDIR_INDX      SFS_DIR_PTRS
 #define SFS_DINDIR_INDX     SFS_INDIR_INDX+1
-#define SFS_TOTAL_PTRS      (SFS_DIR_BLOCK + SFS_INDIR_BLOCKS + SFS_DINDIR_BLOCKS)   
+#define SFS_TOTAL_PTRS      (SFS_DIR_PTRS + SFS_INDIR_PTRS + SFS_DINDIR_PTRS)   
                                     // Total number of pointers per inode
 
 /* Number of data blocks that a pointer points to  */
 #define SFS_DBLOCKS_PER_PTR  (BLOCK_SIZE / 4)
 #define SFS_DIR_BLOCKS      1 * SFS_DIR_PTRS 
-#define SFS_INDIR_BLOCKS    (SFS_DBLOCKS_PER_PTR * SFS_INDIR_PTRS) // 128 Blocks = 64KB
-#define SFS_DINDIR_BLOCKS   (SFS_DBLOCKS_PER_PTR * SFS_INDIR_PTRS) // 16384 Blocks = 8MB
-#define SFS_TOTAL_BLOCKS    (SFS_DIR_BLOCKS + SFS_INDIR_BLOCKS + SFS_DINDIR_BLOCKS)
-                            // Total number of data blocks supported by 1 inode
 
+#define SFS_NIND_BLOCKS     (BLOCK_SIZE/4)
+
+#define SFS_INDIR_BLOCKS    (SFS_DBLOCKS_PER_PTR * SFS_NIND_BLOCKS) // 128 Blocks = 64KB
+#define SFS_DINDIR_BLOCKS   (SFS_DBLOCKS_PER_PTR * SFS_INDIR_BLOCKS) // 16384 Blocks = 8MB
+#define SFS_TOTAL_BLOCKS    (SFS_DIR_BLOCKS + SFS_INDIR_BLOCKS + SFS_DINDIR_BLOCKS)
+                            // Total number of data blocks supported by FS
+
+#define SFS_N_DBLOCKS       SFS_N_INODES * SFS_DINDIR_BLOCKS       // Number of blocks for data in the FS 
 
 /* Specifications of bitmaps.  Number of blocks required for */
 #define SFS_N_DATA_BM       (SFS_N_DBLOCKS / (BLOCK_SIZE * 8))
@@ -88,16 +91,16 @@ typedef struct __attribute__((packed)){
 
 
 typedef struct __attribute__((packed)) {
-    uint32_t    ino;                                   // inode number
-    char        name[SFS_MAX_FILE_NAME_LENGTH]     // file name 
+    uint32_t    ino;                                // inode number
+    char        name[SFS_MAX_FILE_NAME_LENGTH];     // file name 
 
 }sfs_direntry_t;
 
 
 
 /* Functions */
-uint_32_t ino_from_path(const char* path);
-uint_32_t create_inode(const char* path, mode_t mode);
+uint32_t ino_from_path(const char* path);
+uint32_t create_inode(const char* path, mode_t mode);
 
 
 #endif
