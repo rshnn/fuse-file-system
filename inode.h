@@ -52,8 +52,8 @@
 
 
 /* Specifications of bitmaps.  Number of blocks required for */
-#define SFS_N_DATA_BM       (SFS_N_DBLOCKS / (BLOCK_SIZE * 8))
-#define SFS_N_INODE_BM      1
+// #define SFS_N_DATA_BM       (SFS_N_DBLOCKS / (BLOCK_SIZE * 8))
+// #define SFS_N_INODE_BM      1
 
 /* BlockNum Indexes */
 #define SFS_SUPERBLOCK_INDX     0       // Only requires 1 block  

@@ -138,7 +138,7 @@ void *sfs_init(struct fuse_conn_info *conn)
             //uint32_t blocks_temp[SFS_TOTAL_PTRS]; //array of pointers in inode
             newInode.blocks[idx];
 
-            for(j=0; i< SFS_DIR_PTRS; ++j){
+            for(j=0; j< SFS_DIR_PTRS; ++j){
                 /*For each direct pointer*/
                 block_write(curr, dblock_buffer);
 
@@ -205,7 +205,8 @@ void *sfs_init(struct fuse_conn_info *conn)
             /*Write new inode (+blocks) back */
 
             update_inode_data(SFS_INODEBLOCK_INDX+ i, &newInode);
-            
+            log_msg("\t\t\tWrote inode into file at block %d.\n", SFS_INODEBLOCK_INDX+i);
+
 
         }
 
