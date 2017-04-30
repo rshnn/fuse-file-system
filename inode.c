@@ -90,6 +90,7 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 	int start_block_idx = (offset / BLOCK_SIZE);
 	offset = offset % BLOCK_SIZE;
 
+	uint32_t bytes_to_read = 0;
 
 	int launch_indir = 0;
 	int launch_dindir = 0;
@@ -111,7 +112,10 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 	for (i = start_block_idx; (read_byte_count < inode->size) && (i < SFS_DIR_PTRS);++i) {
 
 		if (offset != 0) {
-			int bytes_to_read = (BLOCK_SIZE - offset) > inode->size ? inode->size : (BLOCK_SIZE - inode->size);
+
+			log_msg("\tEntering main case.\n");
+
+			bytes_to_read = (BLOCK_SIZE - offset) > inode->size ? inode->size : (BLOCK_SIZE - inode->size);
 			block_read(inode->blocks[i], tmp_buf);
 			memcpy(buffer, tmp_buf + offset, bytes_to_read);
 
@@ -124,9 +128,10 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 
 		} else {
 
-			int bytes_to_read = (inode->size - read_byte_count) > BLOCK_SIZE ? BLOCK_SIZE : (inode->size - bytes_to_read);
+			log_msg("\tEntering else case.\n");
+			bytes_to_read = (inode->size - read_byte_count) > BLOCK_SIZE ? BLOCK_SIZE : (inode->size - bytes_to_read);
 			block_read(inode->blocks[i], tmp_buf);
-			log_msg("\ttmp_buf = %s\n", tmp_buf);
+			log_msg("\ttmp_buf = %s, bytes to read %d\n", tmp_buf, bytes_to_read);
 			memcpy(buffer + read_byte_count, tmp_buf, bytes_to_read);
 
 			log_msg("\tRead Buffer = %s\n", buffer);
@@ -165,33 +170,33 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 		uint32_t indir_start_bno 	= indir_bno++;
 
 		
-		// for (i; (read_byte_count < inode->size) && (i < (BLOCK_SIZE/4));++i) {
+		for (i; (read_byte_count < inode->size) && (i < (BLOCK_SIZE/4));++i) {
 
-		// 	if (offset != 0) {
-		// 		int bytes_to_read = (BLOCK_SIZE - offset) > inode->size ? inode->size : (BLOCK_SIZE - inode->size);
-		// 		block_read(inode->blocks[16]+i+1, tmp_buf);
-		// 		memcpy(buffer, tmp_buf + offset, bytes_to_read);
+			if (offset != 0) {
+				bytes_to_read = (BLOCK_SIZE - offset) > inode->size ? inode->size : (BLOCK_SIZE - inode->size);
+				block_read(inode->blocks[16]+i+1, tmp_buf);
+				memcpy(buffer, tmp_buf + offset, bytes_to_read);
 
-		// 		read_byte_count += bytes_to_read;
+				read_byte_count += bytes_to_read;
 
-		// 		log_msg("\tOffset: %d, read %d bytes\n", offset, read_byte_count);
+				log_msg("\tOffset: %d, read %d bytes\n", offset, read_byte_count);
 
-		// 		offset = 0;
+				offset = 0;
 
 
-		// 	} else {
+			} else {
 
-		// 		int bytes_to_read = (inode->size - read_byte_count) > BLOCK_SIZE ? BLOCK_SIZE : (inode->size - bytes_to_read);
-		// 		block_read(inode->blocks[16]+i+1, tmp_buf);
-		// 		log_msg("\ttmp_buf = %s\n", tmp_buf);
-		// 		memcpy(buffer + read_byte_count, tmp_buf, bytes_to_read);
+				bytes_to_read = (inode->size - read_byte_count) > BLOCK_SIZE ? BLOCK_SIZE : (inode->size - bytes_to_read);
+				block_read(inode->blocks[16]+i+1, tmp_buf);
+				log_msg("\ttmp_buf = %s\n", tmp_buf);
+				memcpy(buffer + read_byte_count, tmp_buf, bytes_to_read);
 
-		// 		log_msg("\tRead Buffer = %s\n", buffer);
-		// 		log_msg("\ttmp_buf1 = %s\n", tmp_buf);
-		// 		read_byte_count += bytes_to_read;
+				log_msg("\tRead Buffer = %s\n", buffer);
+				log_msg("\ttmp_buf1 = %s\n", tmp_buf);
+				read_byte_count += bytes_to_read;
 
-		// 	}
-		// }
+			}
+		}
 
 
 
