@@ -90,11 +90,29 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 	int start_block_idx = (offset / BLOCK_SIZE);
 	offset = offset % BLOCK_SIZE;
 
+
+	int launch_indir = 0;
+	int launch_dindir = 0;
+
+	if(start_block_idx > 15){
+		log_msg("\tLaunching indir case 1.\n");
+		launch_indir = 1;
+
+		if(start_block_idx > (128+16)){
+			log_msg("\tNvm. Launching dindir.\n");
+			launch_indir = 0;
+			launch_dindir = 1;
+		}
+
+	}
+
+
+
 	for (i = start_block_idx; (read_byte_count < inode->size) && (i < SFS_DIR_PTRS);++i) {
 
 		if (offset != 0) {
 			int bytes_to_read = (BLOCK_SIZE - offset) > inode->size ? inode->size : (BLOCK_SIZE - inode->size);
-			block_read(SFS_DATABLOCK_INDX + inode->blocks[i], tmp_buf);
+			block_read(inode->blocks[i], tmp_buf);
 			memcpy(buffer, tmp_buf + offset, bytes_to_read);
 
 			read_byte_count += bytes_to_read;
@@ -107,7 +125,7 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 		} else {
 
 			int bytes_to_read = (inode->size - read_byte_count) > BLOCK_SIZE ? BLOCK_SIZE : (inode->size - bytes_to_read);
-			block_read(SFS_DATABLOCK_INDX + inode->blocks[i], tmp_buf);
+			block_read(inode->blocks[i], tmp_buf);
 			log_msg("\ttmp_buf = %s\n", tmp_buf);
 			memcpy(buffer + read_byte_count, tmp_buf, bytes_to_read);
 
@@ -117,6 +135,81 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 
 		}
 	}
+
+
+
+	/***************************************************************************/
+	/* indir blocks [16] */
+	
+	// Didnt finish writing with just direct blocks
+	
+	if(read_byte_count < inode->size && start_block_idx < 128+15){
+		log_msg("\tLaunching indir case 2.\n");
+
+		launch_indir = 1;
+		if(start_block_idx > 15){
+			i = start_block_idx - 15;
+		}else {
+			i = 0;
+		}
+	}
+
+
+
+	if(launch_indir){
+		
+		log_msg("\tLaunching indir DOING IT. i is %d\n", i);
+
+
+		uint32_t indir_bno 			= inode->blocks[16];
+		uint32_t indir_start_bno 	= indir_bno++;
+
+		
+		// for (i; (read_byte_count < inode->size) && (i < (BLOCK_SIZE/4));++i) {
+
+		// 	if (offset != 0) {
+		// 		int bytes_to_read = (BLOCK_SIZE - offset) > inode->size ? inode->size : (BLOCK_SIZE - inode->size);
+		// 		block_read(inode->blocks[16]+i+1, tmp_buf);
+		// 		memcpy(buffer, tmp_buf + offset, bytes_to_read);
+
+		// 		read_byte_count += bytes_to_read;
+
+		// 		log_msg("\tOffset: %d, read %d bytes\n", offset, read_byte_count);
+
+		// 		offset = 0;
+
+
+		// 	} else {
+
+		// 		int bytes_to_read = (inode->size - read_byte_count) > BLOCK_SIZE ? BLOCK_SIZE : (inode->size - bytes_to_read);
+		// 		block_read(inode->blocks[16]+i+1, tmp_buf);
+		// 		log_msg("\ttmp_buf = %s\n", tmp_buf);
+		// 		memcpy(buffer + read_byte_count, tmp_buf, bytes_to_read);
+
+		// 		log_msg("\tRead Buffer = %s\n", buffer);
+		// 		log_msg("\ttmp_buf1 = %s\n", tmp_buf);
+		// 		read_byte_count += bytes_to_read;
+
+		// 	}
+		// }
+
+
+
+	}
+
+	/***************************************************************************/
+	/***************************************************************************/
+	/*end indir*/
+
+
+
+
+
+
+
+
+
+
 
 
 	return read_byte_count;
@@ -148,7 +241,23 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 	int start_block_idx = (offset / BLOCK_SIZE);
 	offset = offset % BLOCK_SIZE;
 
-	for (i = start_block_idx; (bytes_written < size) && (i < SFS_DIR_PTRS);++i) {
+	int launch_indir = 0;
+	int launch_dindir = 0;
+
+	if(start_block_idx > 15){
+		launch_indir = 1;
+
+		if(start_block_idx > (128+16)){
+			launch_indir = 0;
+			launch_dindir = 1;
+		}
+
+	}
+
+
+	/* For loop dor dirent blocks [0-15] */
+
+	for (i = start_block_idx; (bytes_written < size) && (i < SFS_DIR_PTRS); ++i) {
 		if (i >= inode_data->num_blocks) {
 			// inode_data->blocks[i] = get_new_blockno();
 			++num_new_blocks;
@@ -157,7 +266,7 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 
 		if (offset != 0) {
 			int bytes_to_write = (BLOCK_SIZE - offset) > size ? size : (BLOCK_SIZE - offset);
-			block_read(SFS_DATABLOCK_INDX + inode_data->blocks[i], tmp_buf);
+			block_read(inode_data->blocks[i], tmp_buf);
 			memcpy(tmp_buf + offset, buffer, bytes_to_write);
 			update_block_data(inode_data->blocks[i], tmp_buf);
 
@@ -176,6 +285,70 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 			bytes_written += bytes_to_write;
 		}
 	}
+
+
+
+	/***************************************************************************/
+	/* indir blocks [16] */
+	
+	// Didnt finish writing with just direct blocks
+	
+	if(bytes_written < size && start_block_idx < 128+15){
+		launch_indir = 1;
+		if(start_block_idx > 15){
+			i = start_block_idx - 15;
+		}else {
+			i = 0;
+		}
+	}
+
+
+
+	if(launch_indir){
+		
+		uint32_t indir_bno 			= inode_data->blocks[16];
+		uint32_t indir_start_bno 	= indir_bno++;
+
+		
+		for (i; (bytes_written < size) && (i < (BLOCK_SIZE/4) );++i) {
+
+			if (i >= inode_data->num_blocks) {
+				// inode_data->blocks[i] = get_new_blockno();
+				++num_new_blocks;
+				log_msg("\tNew block being allocated to this file for the write request.\n");
+			}
+
+			if (offset != 0) {
+				int bytes_to_write = (BLOCK_SIZE - offset) > size ? size : (BLOCK_SIZE - offset);
+				block_read(inode_data->blocks[16]+i+1, tmp_buf);
+				memcpy(tmp_buf + offset, buffer, bytes_to_write);
+				update_block_data(inode_data->blocks[16]+i+1, tmp_buf);
+
+				bytes_written += bytes_to_write;
+
+				log_msg("\torig offset = %d, Offset = %d, written %d bytes\n", orig_offset, offset, bytes_written);
+
+				offset = 0;
+			} else {
+				int bytes_to_write = (size - bytes_written) > BLOCK_SIZE ? BLOCK_SIZE : (size - bytes_written);
+				memcpy(tmp_buf, buffer + bytes_written, bytes_to_write);
+				update_block_data(inode_data->blocks[16]+i+1, tmp_buf);
+
+				log_msg("\tUpdated block %d offset = %d num bytes written = %d\n",inode_data->blocks[16]+i+1, offset, bytes_to_write);
+
+				bytes_written += bytes_to_write;
+			}
+		}
+
+
+	}
+
+	/***************************************************************************/
+	/***************************************************************************/
+	/*end indir*/
+
+
+
 
 	inode_data->num_blocks += num_new_blocks;
 	inode_data->size = orig_offset + size;
@@ -291,7 +464,7 @@ void update_inode_data(uint32_t ino, sfs_inode_t *inode) {
 }
 
 void update_block_data(uint32_t bno, char* buffer) {
-	block_write(SFS_DATABLOCK_INDX + bno, buffer);
+	block_write(bno, buffer);
 
 	log_msg("\nupdate_block_data()... \n\tSuccessful update\n");
 }
@@ -498,9 +671,9 @@ void create_direntry(const char *name, sfs_inode_t *inode, uint32_t ino_parent) 
 		inode_parent.num_blocks += 1;
 	}
 
-	block_read(SFS_DATABLOCK_INDX + inode_parent.blocks[idx], buffer);
+	block_read( inode_parent.blocks[idx], buffer);
 	memcpy(buffer + (int_idx * SFS_DIRENTRY_SIZE), &dentry, sizeof(sfs_direntry_t));
-	block_write(SFS_DATABLOCK_INDX + inode_parent.blocks[idx], buffer);
+	block_write( inode_parent.blocks[idx], buffer);
 
 	inode_parent.size += SFS_DIRENTRY_SIZE;
 	update_inode_data(inode_parent.ino, &inode_parent);
@@ -557,7 +730,7 @@ void read_direntry_block(uint32_t block_id, sfs_direntry_t* dentries, int num_en
 	log_msg("\nread_direntry_block()...\n");
 
 	char buffer[BLOCK_SIZE];
-	block_read(SFS_DATABLOCK_INDX + block_id, buffer);
+	block_read( block_id, buffer);
 
 	int entries_read = 0;
 	int bytes_read = 0;
@@ -600,7 +773,7 @@ void remove_direntry(sfs_inode_t *inode, uint32_t ino_parent){
 
 			if (num_blocks_read < SFS_DIR_PTRS) {
 				char buffer[BLOCK_SIZE];
-				block_read(SFS_DATABLOCK_INDX + inode_parent.blocks[num_blocks_read], buffer);
+				block_read( inode_parent.blocks[num_blocks_read], buffer);
 
 				int entries_read = 0;
 				int bytes_read = 0;
@@ -620,7 +793,7 @@ void remove_direntry(sfs_inode_t *inode, uint32_t ino_parent){
 							int int_idx = (total_entries - 1) % (BLOCK_SIZE / SFS_DIRENTRY_SIZE);
 
 							char buffer_last[BLOCK_SIZE];
-							block_read(SFS_DATABLOCK_INDX + inode_parent.blocks[idx], buffer_last);
+							block_read( inode_parent.blocks[idx], buffer_last);
 							sfs_direntry_t dentry_last;
 							memcpy(&dentry_last, buffer_last + SFS_DIRENTRY_SIZE * int_idx, sizeof(sfs_direntry_t));
 
