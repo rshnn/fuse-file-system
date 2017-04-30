@@ -260,24 +260,24 @@ uint32_t ino_from_path_dir(const char *path, uint32_t ino_parent) {
 	update_inode_data
 	update_block_data
 */
-void update_inode_bitmap(uint32_t ino, char ch) {
-	int i = 0;
-	char buffer[BLOCK_SIZE];
-	block_read(SFS_INODE_BM_INDX + ino / BLOCK_SIZE, buffer);
-	buffer[ino] = ch;
-	block_write(SFS_INODE_BM_INDX + ino / BLOCK_SIZE, buffer);
+// void update_inode_bitmap(uint32_t ino, char ch) {
+// 	int i = 0;
+// 	char buffer[BLOCK_SIZE];
+// 	block_read(SFS_INODE_BM_INDX + ino / BLOCK_SIZE, buffer);
+// 	buffer[ino] = ch;
+// 	block_write(SFS_INODE_BM_INDX + ino / BLOCK_SIZE, buffer);
 
-	log_msg("\nupdate_inode_bitmap()... \n\tSuccessful update\n");
-}
+// 	log_msg("\nupdate_inode_bitmap()... \n\tSuccessful update\n");
+// }
 
-void update_block_bitmap(uint32_t bno, char ch) {
-	char buffer[BLOCK_SIZE];
-	block_read(SFS_DATA_BM_INDX + bno / BLOCK_SIZE, buffer);
-	buffer[bno] = ch;
-	block_write(SFS_DATA_BM_INDX + bno / BLOCK_SIZE, buffer);
+// void update_block_bitmap(uint32_t bno, char ch) {
+// 	char buffer[BLOCK_SIZE];
+// 	block_read(SFS_DATA_BM_INDX + bno / BLOCK_SIZE, buffer);
+// 	buffer[bno] = ch;
+// 	block_write(SFS_DATA_BM_INDX + bno / BLOCK_SIZE, buffer);
 
-	log_msg("\nupdate_block_bitmap()... \n\tSuccessful update\n");
-}
+// 	log_msg("\nupdate_block_bitmap()... \n\tSuccessful update\n");
+// }
 
 void update_inode_data(uint32_t ino, sfs_inode_t *inode) {
 	char buffer[BLOCK_SIZE];
@@ -494,7 +494,7 @@ void create_direntry(const char *name, sfs_inode_t *inode, uint32_t ino_parent) 
 
 	if ((int_idx == 0) && (num_dentries != 0)) {
 		// inode_parent.blocks[idx] = get_new_blockno();
-		update_block_bitmap(inode_parent.blocks[idx], '0');
+		// update_block_bitmap(inode_parent.blocks[idx], '0');
 		inode_parent.num_blocks += 1;
 	}
 
@@ -627,7 +627,7 @@ void remove_direntry(sfs_inode_t *inode, uint32_t ino_parent){
 							if (int_idx == 0) {
 								inode_parent.num_blocks--;
 								// free_block_no(inode_parent.blocks[idx]);
-								update_block_bitmap(inode_parent.blocks[idx], '1');
+								// update_block_bitmap(inode_parent.blocks[idx], '1');
 							}
 
 							memcpy(buffer + bytes_read, &dentry_last, sizeof(sfs_direntry_t));
@@ -686,7 +686,7 @@ uint32_t create_inode(const char* path, mode_t mode){
 		if ((temp_ino != SFS_INVLD_INO)) {
 
 			// Update inode bitmap
-			update_inode_bitmap(temp_ino, '0');
+			// update_inode_bitmap(temp_ino, '0');
 
 			// Update data bitmap
 			// update_block_bitmap(block_no, '0');
@@ -763,7 +763,7 @@ int remove_inode(const char *path) {
 
 		// free_ino(inode_data.ino);
 		inode_data.isvalid = 0;
-		update_inode_bitmap(inode_data.ino, '1');
+		// update_inode_bitmap(inode_data.ino, '1');
 		update_inode_data(inode_data.ino, &inode_data);
 
 		log_msg("\tinode removed.");

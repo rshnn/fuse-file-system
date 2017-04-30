@@ -57,9 +57,9 @@
 
 /* BlockNum Indexes */
 #define SFS_SUPERBLOCK_INDX     0       // Only requires 1 block  
-#define SFS_INODE_BM_INDX       1       // ''
-#define SFS_DATA_BM_INDX        2       // ''
-#define SFS_INODEBLOCK_INDX     SFS_DATA_BM_INDX + SFS_N_DATA_BM    // 
+// #define SFS_INODE_BM_INDX       1       // ''
+// #define SFS_DATA_BM_INDX        2       // ''
+#define SFS_INODEBLOCK_INDX     1    // 
 #define SFS_DATABLOCK_INDX      SFS_INODEBLOCK_INDX + SFS_N_INODE_BLOCKS
 
 
