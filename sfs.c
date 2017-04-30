@@ -32,7 +32,7 @@
 
 #include "log.h"
 #include "inode.h"
-#include "inode.c"
+// #include "inode.c"
 
 #define SFS_SUPERSECRET 518
 
@@ -333,6 +333,7 @@ int sfs_getattr(const char *path, struct stat *statbuf)
         populate_stat(&inode, statbuf);
     }else{
         log_msg("\tError:  Path was not found.\n");
+        retstat = -ENOENT;
     }
 
     return retstat;
@@ -427,7 +428,21 @@ int sfs_release(const char *path, struct fuse_file_info *fi)
     int retstat = 0;
     log_msg("\nsfs_release(path=\"%s\", fi=0x%08x)\n",
 	  path, fi);
-    
+ 
+    uint32_t ino = ino_from_path(path);
+
+    if(ino != SFS_INVLD_INO){
+
+        sfs_inode_t inode; 
+        get_inode(ino, &inode);
+        log_msg("\tUpdating data times.\n");
+        
+        inode.time_access = inode.time_mod = inode.time_change = time(NULL);
+
+        update_inode_data(ino, &inode);
+    }
+
+
 
     return retstat;
 }
