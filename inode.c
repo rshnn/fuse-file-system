@@ -49,7 +49,7 @@ void get_inode(uint32_t ino, sfs_inode_t* rtn_inode){
     	block_read(SFS_INODEBLOCK_INDX + block_offset, buffer);
 
     	int local_offset = ino%4;
-    	if((((sfs_inode_t*)buffer)[local_offset]).isvalid == 1){
+    	if((((sfs_inode_t*)buffer)[local_offset]).isvalid == 0){
 		    log_msg("\tError: Invalid inode number. %d\n", ino);
 		    return;
     	}
@@ -576,7 +576,84 @@ void read_direntry_block(uint32_t block_id, sfs_direntry_t* dentries, int num_en
 *		return: none
 */
 void remove_direntry(sfs_inode_t *inode, uint32_t ino_parent){
+	
+	log_msg("\nremove_direntry()...\n");
 
+	sfs_inode_t inode_parent;
+	get_inode(ino_parent, &inode_parent);
+	if (S_ISDIR(inode_parent.mode)) {
+		int num_blocks_read = 0;
+		int num_bytes_read = 0;
+		int num_entries = 0;
+		int entry_offset = 0;
+
+		while ((num_blocks_read < inode_parent.num_blocks)
+				&& (num_bytes_read < inode_parent.size)) {
+
+			if (inode_parent.size - num_bytes_read < BLOCK_SIZE) {
+				num_entries = ((inode_parent.size - num_bytes_read) / SFS_DIRENTRY_SIZE);
+			} else {
+				num_entries = (BLOCK_SIZE / SFS_DIRENTRY_SIZE);
+			}
+
+			log_msg("\tRead direntries...%d entries.\n", num_entries);
+
+			if (num_blocks_read < SFS_DIR_PTRS) {
+				char buffer[BLOCK_SIZE];
+				block_read(SFS_DATABLOCK_INDX + inode_parent.blocks[num_blocks_read], buffer);
+
+				int entries_read = 0;
+				int bytes_read = 0;
+				while ((bytes_read < BLOCK_SIZE) && (entries_read < num_entries)) {
+					log_msg("\tReading direntry from blocks.. Entries read = %d\n", entries_read);
+					sfs_direntry_t dentry;
+					memcpy(&dentry, buffer + bytes_read, sizeof(sfs_direntry_t));
+
+
+					if (dentry.inode_number == inode->ino) {
+						log_msg("\tFound the entry to be deleted.\n");
+						// Now i am going to overwrite it with the last dentry
+
+						int total_entries = (inode_parent.size / SFS_DIRENTRY_SIZE);
+						if (total_entries > 1) {
+							int idx = (total_entries - 1) / (BLOCK_SIZE / SFS_DIRENTRY_SIZE);
+							int int_idx = (total_entries - 1) % (BLOCK_SIZE / SFS_DIRENTRY_SIZE);
+
+							char buffer_last[BLOCK_SIZE];
+							block_read(SFS_DATABLOCK_INDX + inode_parent.blocks[idx], buffer_last);
+							sfs_direntry_t dentry_last;
+							memcpy(&dentry_last, buffer_last + SFS_DIRENTRY_SIZE * int_idx, sizeof(sfs_direntry_t));
+
+							if (int_idx == 0) {
+								inode_parent.num_blocks--;
+								// free_block_no(inode_parent.blocks[idx]);
+								update_block_bitmap(inode_parent.blocks[idx], '1');
+							}
+
+							memcpy(buffer + bytes_read, &dentry_last, sizeof(sfs_direntry_t));
+							update_block_data(inode_parent.blocks[num_blocks_read], buffer);
+							inode_parent.size -= SFS_DIRENTRY_SIZE;
+
+						} else {
+							inode_parent.size -= SFS_DIRENTRY_SIZE;
+						}
+
+						update_inode_data(inode_parent.ino, &inode_parent);
+						log_msg("\n Item deleted successfully");
+						return;
+					}
+					++entries_read;
+					bytes_read += SFS_DIRENTRY_SIZE;
+				}
+			}
+
+			++num_blocks_read;
+			num_bytes_read += (num_entries * SFS_DIRENTRY_SIZE);
+			entry_offset += num_entries;
+		}
+	} else {
+		log_msg("\n Invalid inode number %d, not a directory", inode_parent.ino);
+	}
 }
 
 
@@ -678,8 +755,8 @@ int remove_inode(const char *path) {
 
 		while (num_blocks > 0) {
 
-			free_blockno(inode_data.blocks[num_blocks - 1]);
-			update_block_bitmap(inode_data.blocks[num_blocks - 1], '1');
+			// free_blockno(inode_data.blocks[num_blocks - 1]);
+			// update_block_bitmap(inode_data.blocks[num_blocks - 1], '1');
 
 			--num_blocks;
 		}
@@ -701,3 +778,26 @@ int remove_inode(const char *path) {
 	return -ENOENT;
 }
 
+
+/**
+* 	populate_stat()
+* 		params: inode struct, statbuffer  
+*		return: none
+*
+* 	Helper function for get_attr.  Populates the statbuf using inode data
+*/
+void populate_stat(const sfs_inode_t* inode, struct stat *statbuf) {
+	statbuf->st_dev = 0;
+	statbuf->st_ino = inode->ino;
+	statbuf->st_mode = inode->mode;
+	statbuf->st_nlink = inode->nlink;
+	statbuf->st_uid = getuid();
+	statbuf->st_gid = getgid();
+	statbuf->st_rdev = 0;
+	statbuf->st_size = inode->size;
+	statbuf->st_blksize = BLOCK_SIZE;
+	statbuf->st_blocks = inode->num_blocks;
+	statbuf->st_atime = inode->time_access;
+	statbuf->st_mtime = inode->time_mod;
+	statbuf->st_ctime = inode->time_change;
+}

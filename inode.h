@@ -132,6 +132,6 @@ void remove_direntry(sfs_inode_t *inode, uint32_t ino_parent);
 
 uint32_t create_inode(const char* path, mode_t mode);
 int remove_inode(const char *path);
-
+void populate_stat(const sfs_inode_t* inode, struct stat *statbuf);
 
 #endif

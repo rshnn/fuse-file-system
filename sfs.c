@@ -70,7 +70,7 @@ typedef struct __attribute__((packed)){
 void *sfs_init(struct fuse_conn_info *conn)
 {
     fprintf(stderr, "in bb-init\n");
-    log_msg("\nsfs_init()\n");
+    log_msg("\nsfs_init()...\n");
     log_conn(conn);
     log_fuse_context(fuse_get_context());
     
@@ -100,31 +100,31 @@ void *sfs_init(struct fuse_conn_info *conn)
             block_write((SFS_DATA_BM_INDX + i), bitmap_data);
         }
 
-
-
-        log_msg("Finished bitmap inits\n");
+        log_msg("\tFinished bitmap inits\n");
 
 
         // Init inode_block
-
         char inode_buffer[BLOCK_SIZE];
         memset(inode_buffer, '0', sizeof(inode_buffer));
 
         for(i=0; i < (SFS_N_INODES/4); ++i){
             block_write((SFS_INODEBLOCK_INDX+i), inode_buffer);
         }    
+        log_msg("\tFinished inode block init\n");
 
 
-        log_msg("Finished inode block init\n");
+
 
         // Init data_block 
-
         char dblock_buffer[BLOCK_SIZE];
         memset(dblock_buffer, '0', sizeof(dblock_buffer));
+        /*Following for loop is to mass-allocate a fized number of dblocks*/
         // for(i=0; i < SFS_N_DBLOCKS; ++i){
         //     block_write((SFS_DATABLOCK_INDX+i), dblock_buffer);
         // }    
 
+
+        /*Following giant for loop allocates dblocks and inits inode.blocks*/
         int j, k, l, m, n, t;
         int curr = SFS_DATABLOCK_INDX;
 
@@ -205,7 +205,7 @@ void *sfs_init(struct fuse_conn_info *conn)
 
         }
 
-        log_msg("Finished allocating dblocks\n");
+        log_msg("\tFinished allocating dblocks\n");
 
 
 
@@ -243,6 +243,9 @@ void *sfs_init(struct fuse_conn_info *conn)
 
         /* write it black */
         update_inode_data(0, &inode);
+        SFS_DATA->root_ino = 0;
+        log_msg("\tFinished writing root inode.\n");
+
         /*</root_inode>*/
 
 
@@ -260,6 +263,7 @@ void *sfs_init(struct fuse_conn_info *conn)
         };
 
         block_write_padded(SFS_SUPERBLOCK_INDX, &SuperBlock, sizeof(SuperDuperBlock));
+        log_msg("\tFinished setting SuperBlock.\n");
 
 
     }else{
@@ -271,18 +275,10 @@ void *sfs_init(struct fuse_conn_info *conn)
             log_msg("\n#NotMyFS\n");
             exit(-1);
         }
-
+        log_msg("\tFile system already initialized.  Woopwoop\n");
 
     }
 
-
-    /* Copy inode availability into fuse_context */
-    
-    /* Copy data availability into fuse_context */
-
-    /* Store root_ino */
-   
-    
 
     log_conn(conn);
     log_fuse_context(fuse_get_context());
@@ -322,6 +318,18 @@ int sfs_getattr(const char *path, struct stat *statbuf)
     log_msg("\nsfs_getattr(path=\"%s\", statbuf=0x%08x)\n",
 	  path, statbuf);
     
+    uint32_t ino = ino_from_path(path);
+    if(ino != SFS_INVLD_INO){
+        log_msg("\tPath found.\n");
+        sfs_inode_t inode;
+        get_inode(ino, &inode);
+
+        /*Found the inode, now fill out the statbuf*/
+        populate_stat(&inode, statbuf);
+    }else{
+        log_msg("\tError:  Path was not found.\n");
+    }
+
     return retstat;
 }
 
@@ -342,8 +350,11 @@ int sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
     int retstat = 0;
     log_msg("\nsfs_create(path=\"%s\", mode=0%03o, fi=0x%08x)\n",
 	    path, mode, fi);
-    
-    
+
+    /* Redirect this to the inode.c implementation of create_inode() */    
+    uint32_t ino = create_inode(path, mode);
+    log_msg("\tFile was successfully creted with ino: %d.\n", ino);
+
     return retstat;
 }
 
@@ -352,7 +363,7 @@ int sfs_unlink(const char *path)
 {
     int retstat = 0;
     log_msg("sfs_unlink(path=\"%s\")\n", path);
-
+    retstat = remove_inode(path);
     
     return retstat;
 }
@@ -372,6 +383,21 @@ int sfs_open(const char *path, struct fuse_file_info *fi)
     int retstat = 0;
     log_msg("\nsfs_open(path\"%s\", fi=0x%08x)\n",
 	    path, fi);
+
+    retstat = -ENOENT;
+
+    uint32_t ino = ino_from_path(path);
+
+    if(ino != SFS_INVLD_INO){
+        sfs_inode_t inode;
+        get_inode(ino, &inode);
+
+        if(S_ISREG(inode, mode)){
+            retstat = 0;
+        }
+    }else{
+        log_msg("\tProvided path does not resolve to a valid file.\n");
+    }
 
     
     return retstat;
@@ -419,6 +445,24 @@ int sfs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse
 	    path, buf, size, offset, fi);
 
    
+    uint32_t ino = ino_from_path(path);
+
+    if (ino != SFS_INVLD_INO) {
+        log_msg("\tPath resolved to an ino.\n");
+        sfs_inode_t inode;
+        get_inode(ino, &inode);
+
+        log_msg("\tInode was successfully retrieved.\n");
+
+        retstat = read_inode(&inode, buf, size, offset);
+        log_msg("\tData read = %s\n", buf);
+    } else {
+        log_msg("\tError: Path does not resolve to a valid ino.\n");
+        retstat = -ENOENT;
+    }
+
+
+
     return retstat;
 }
 
@@ -435,10 +479,27 @@ int sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 {
     int retstat = 0;
     log_msg("\nsfs_write(path=\"%s\", buf=0x%08x, size=%d, offset=%lld, fi=0x%08x)\n",
-	    path, buf, size, offset, fi);
-    
+        path, buf, size, offset, fi);
+
+
+    uint32_t ino = ino_from_path(path);
+
+    if (ino != SFS_INVLD_INO) {
+
+        log_msg("\tPath resolved to an ino.\n");
+        sfs_inode_t inode;
+        get_inode(ino, &inode);
+        log_msg("\tInode was successfully retrieved.\n");
+
+        retstat = write_inode(&inode, buf, size, offset);
+
+    } else {
+        log_msg("\tError: Path does not resolve to a valid ino.\n");
+        retstat = -ENOENT;
+    }
     
     return retstat;
+
 }
 
 
@@ -449,6 +510,9 @@ int sfs_mkdir(const char *path, mode_t mode)
     log_msg("\nsfs_mkdir(path=\"%s\", mode=0%3o)\n",
 	    path, mode);
    
+   /*Same as creating regular file.  Create inode. */
+    uint32_t ino = create_inode(path, mode);
+    log_msg("\tDirectory creation success. ino = %d\n", ino);
     
     return retstat;
 }
@@ -478,6 +542,25 @@ int sfs_opendir(const char *path, struct fuse_file_info *fi)
     int retstat = 0;
     log_msg("\nsfs_opendir(path=\"%s\", fi=0x%08x)\n",
 	  path, fi);
+        
+
+    uint32_t ino = ino_from_path(path);
+    
+    if (ino != SFS_INVLD_INO) {
+
+        log_msg("\tPath resolved to an ino.\n");
+        
+        sfs_inode_t inode;
+        get_inode(ino, &inode);
+        log_msg("\tInode was successfully retrieved.\n");
+
+        if (S_ISDIR(inode.mode)) {
+            retstat = 0;
+        }
+
+    } else {
+        log_msg("\nNot a valid file");
+    }
     
     
     return retstat;
@@ -507,11 +590,48 @@ int sfs_opendir(const char *path, struct fuse_file_info *fi)
 int sfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset,
 	       struct fuse_file_info *fi)
 {
+    
+    log_msg("\nsfs_readdir(path=\"%s\")...\n", path);
     int retstat = 0;
     
+
+    filler(buf, ".", NULL, 0);
+    filler(buf, "..", NULL, 0);
+    uint32_t ino = ino_from_path(path);
+    if (ino != SFS_INVLD_INO) {
+
+        log_msg("\tPath resolved to an ino.\n");
+        
+        sfs_inode_t inode;
+        get_inode(ino, &inode);
+        log_msg("\tSuccessfully retrieved the inode.\n");
+
+        int num_dentries = (inode.size / SFS_DIRENTRY_SIZE);
+        sfs_direntry_t* dentries = malloc(sizeof(sfs_direntry_t) * num_dentries);
+        read_direntries(&inode, dentries);
+
+        int i = 0;
+        for (i = 0; i < num_dentries; ++i) {
+            filler(buf, dentries[i].name, NULL, 0);
+        }
+
+        free(dentries);
+    } else {
+        log_msg("\tError: Path did not resolve to an ino.");
+    }
+
+
     
     return retstat;
 }
+
+
+
+
+
+
+
+
 
 /** Release directory
  *
