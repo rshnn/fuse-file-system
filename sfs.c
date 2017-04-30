@@ -28,11 +28,26 @@
 #ifdef HAVE_SYS_XATTR_H
 #include <sys/xattr.h>
 #endif
+
+
 #include "log.h"
-
 #include "inode.h"
-#include "inode.c"
 
+#define SFS_SUPERSECRET 518
+
+typedef struct __attribute__((packed)){
+    uint32_t secret_number;     // Validates if currently mounted FS is init'd
+
+    uint32_t N_data_blocks;     // Number of data blocks allocated
+    uint32_t N_free_blocks;     // Number of free blocks available
+    
+    uint32_t N_inodes;          // Number of inodes total
+    uint32_t N_inodes_used;     // Number of inodes allocated
+    uint32_t N_inodes_avail;    // Number of inodes available
+
+    uint32_t root_ino;          // Root dir's ino
+
+}SuperDuperBlock;
 
 
 ///////////////////////////////////////////////////////////
@@ -69,11 +84,169 @@ void *sfs_init(struct fuse_conn_info *conn)
 
         /*DO INIT STUFF*/
         // Init superblock
-        // Init bitmaps (inode and data)
-        // Init inode_block
-        // Init data_block 
-        // Init root inode ("/")
 
+        SuperDuperBlock SuperBlock = {
+            .secret_number = SFS_SUPERSECRET,
+            .N_data_blocks = 0, 
+            .N_free_blocks = SFS_N_DBLOCKS, 
+            .N_inodes = SFS_N_INODES, 
+            .N_inodes_used = 0, 
+            .N_inodes_avail = SFS_N_INODES, 
+            .root_ino = 0
+        };
+
+        block_write_padded(SFS_SUPERBLOCK_INDX, &SuperBlock, sizeof(SuperDuperBlock));
+
+
+        // Init bitmaps (inode and data)
+        int i = 0;
+        char bitmap_inodes[BLOCK_SIZE];
+        memset(bitmap_inodes, '1', sizeof(bitmap_inodes));
+        for (i = 0; i < SFS_NBLOCKS_INODE_BITMAP; ++i) {
+            block_write((SFS_INODE_BM_INDX + i), bitmap_inodes);
+        }
+        
+        char bitmap_data[BLOCK_SIZE];
+        memset(bitmap_data, '1', sizeof(bitmap_data));
+        for (i = 0; i < SFS_N_DATA_BM; ++i) {
+            block_write((SFS_DATA_BM_INDX + i), bitmap_data);
+        }
+        // Init inode_block
+
+        char inode_buffer[BLOCK_SIZE];
+        memset(inode_buffer, '0', sizeof(inode_buffer));
+
+        for(i=0; i < (SFS_N_INODES/4); ++i){
+            block_write((SFS_INODEBLOCK_INDX+i), inode_buffer);
+        }    
+
+        // Init data_block 
+
+        char dblock_buffer[BLOCK_SIZE];
+        memset(dblock_buffer, '0', sizeof(dblock_buffer));
+        // for(i=0; i < SFS_N_DBLOCKS; ++i){
+        //     block_write((SFS_DATABLOCK_INDX+i), dblock_buffer);
+        // }    
+
+        int j, k, l, m, n, t;
+        int curr = SFS_DATABLOCK_INDX;
+
+
+        for(i=0; i< SFS_N_INODES; ++i){
+            /*For each inode...*/
+            
+            int idx = 0;
+            uint32_t blocks_temp[SFS_TOTAL_PTRS];
+
+
+            for(j=0; i< SFS_DIR_PTRS; ++j){
+                /*For each direct pointer*/
+                block_write(curr, dblock_buffer)
+                blocks_temp[idx] = curr;
+                idx++;
+                curr++;
+            }
+
+
+            for(k=0; k < SFS_INDIR_PTRS; ++k){
+                /*For each indirect pointer */
+                blocks_temp[idx] = curr;
+                idx++;
+                    
+                int indir_buffer[BLOCK_SIZE/4];
+
+                for(l=0; l<(BLOCK_SIZE/4)){
+                    /*For each block pointed to*/
+
+                    blocks_temp[l] = curr;
+                    block_write(curr, dblock_buffer);
+                    curr++;
+                }
+
+                block_write(blocks_temp[idx-1], indir_buffer);
+
+
+            }
+
+            for(m=0; m< SFS_DINDIR_PTRS; ++m){
+                /* For each double indir pointer*/
+
+                int dindir_buffer[BLOCK_SIZE/4];
+                
+
+
+                blocks_temp[idx] = curr;
+                idx++;
+
+
+
+
+                for(k=0; k < SFS_INDIR_PTRS; ++k){
+                    /*For each indirect pointer */
+                    blocks_temp[idx] = curr;
+                    idx++;
+                        
+                    int indir_buffer[BLOCK_SIZE/4];
+
+                    for(l=0; l<(BLOCK_SIZE/4)){
+                        /*For each block pointed to*/
+
+                        blocks_temp[l] = curr;
+                        block_write(curr, dblock_buffer);
+                        curr++;
+                    }
+
+                    block_write(blocks_temp[idx-1], indir_buffer);
+
+
+                }
+            }
+
+            /*Write new inode (+blocks) back */
+
+        }
+
+
+
+
+
+
+
+        // Init root inode ("/")
+        char buffer_data[BLOCK_SIZE];
+        memset(buffer_data, '0', sizeof(buffer_data));
+        for (i = 0; i < SFS_NBLOCKS_DATA; ++i) {
+            block_write((SFS_BLOCK_DATA + i), buffer_data);
+        }
+
+        if (block_read(SFS_BLOCK_INODE_BITMAP, bitmap_inodes) > 0) {
+            bitmap_inodes[0] = '0';
+            block_write(SFS_BLOCK_INODE_BITMAP, bitmap_inodes);
+        }
+
+        if (block_read(SFS_BLOCK_DATA_BITMAP, bitmap_data) > 0) {
+            bitmap_data[0] = '0';
+            block_write(SFS_BLOCK_DATA_BITMAP, bitmap_data);
+        }
+
+        sfs_inode_t inode;
+        memset(&inode, 0, sizeof(inode));
+        inode.atime = inode.ctime = inode.mtime = time(NULL);
+        inode.nblocks = 1;
+        inode.ino = 0;
+        inode.blocks[0] = SFS_BLOCK_DATA;
+        inode.size = 0;
+        inode.nlink = 0;
+        inode.mode = S_IFDIR;
+
+        block_write_padded(SFS_BLOCK_INODES, &inode, sizeof(sfs_inode_t));
+
+
+
+
+    }else{
+        // Check the secret number 
+        // GTFO #notmyfilesystem
 
     }
 
