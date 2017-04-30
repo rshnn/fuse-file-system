@@ -141,6 +141,9 @@ void *sfs_init(struct fuse_conn_info *conn)
             for(j=0; i< SFS_DIR_PTRS; ++j){
                 /*For each direct pointer*/
                 block_write(curr, dblock_buffer);
+
+                log_msg("\tI am writing a dblock. %d.\n", curr);
+                
                 //blocks_temp[idx] = curr;
                 newInode.blocks[idx] = curr;
                 idx++;
