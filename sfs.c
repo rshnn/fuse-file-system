@@ -135,75 +135,41 @@ void *sfs_init(struct fuse_conn_info *conn)
         for(i=0; i< SFS_N_INODES; ++i){
             /*For each inode...*/
             
-            int idx = 0;
-            uint32_t blocks_temp[SFS_TOTAL_PTRS]; //array of pointers in inode
-
-
             for(j=0; i< SFS_DIR_PTRS; ++j){
                 /*For each direct pointer*/
                 block_write(curr, dblock_buffer)
-                blocks_temp[idx] = curr;
-                idx++;
                 curr++;
             }
 
 
             for(k=0; k < SFS_INDIR_PTRS; ++k){
                 /*For each indirect pointer */
-                blocks_temp[idx] = curr;
-                idx++;
-                    
-                int indir_buffer[BLOCK_SIZE/4]; //block of block integers
 
                 for(l=0; l<(BLOCK_SIZE/4)){
                     /*For each block pointed to*/
-
-                    indir_buffer[l] = curr;
                     block_write(curr, dblock_buffer);
                     curr++;
                 }
-
-                block_write(blocks_temp[idx-1], indir_buffer);
-
 
             }
 
             for(m=0; m< SFS_DINDIR_PTRS; ++m){
                 /* For each double indir pointer*/
 
-                int dindir_buffer[BLOCK_SIZE/4];
-
-                blocks_temp[idx] = curr;//block to store 128 single indirect pointers
-                idx++;
-
-
-
                 for(k=0; k < SFS_INDIR_PTRS; ++k){
                     /*For each indirect pointer */
-                   // blocks_temp[idx] = curr;
-                   // idx++;
-                    dindir_buffer[k] = curr;   
-                    int indir_buffer[BLOCK_SIZE/4];
 
                     for(l=0; l<(BLOCK_SIZE/4)){
                         /*For each block pointed to*/
-
-                        indir_buffer[l] = curr;
                         block_write(curr, dblock_buffer);
                         curr++;
                     }
 
-                    block_write(dindir_buffer[k], indir_buffer);
 
                 }
 
             }
 
-            /*Write new inode (+blocks) back */
-
-            
-
-            block_write(SFS_INODEBLOCK_INDX+i, inodestructwithblockstemp);
 
         }
 
