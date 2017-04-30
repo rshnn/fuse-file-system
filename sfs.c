@@ -88,18 +88,17 @@ void *sfs_init(struct fuse_conn_info *conn)
 
 
         // Init bitmaps (inode and data)
-        int i = 0;
-        char bitmap_inodes[BLOCK_SIZE];
-        memset(bitmap_inodes, '1', sizeof(bitmap_inodes));
-        for (i = 0; i < SFS_N_INODE_BM; ++i) {
-            block_write((SFS_INODE_BM_INDX + i), bitmap_inodes);
-        }
+        // int i = 0;
+        // char bitmap_inodes[BLOCK_SIZE];
+        // memset(bitmap_inodes, '1', sizeof(bitmap_inodes));
+        // block_write((SFS_INODE_BM_INDX), bitmap_inodes);
         
-        char bitmap_data[BLOCK_SIZE];
-        memset(bitmap_data, '1', sizeof(bitmap_data));
-        for (i = 0; i < SFS_N_DATA_BM; ++i) {
-            block_write((SFS_DATA_BM_INDX + i), bitmap_data);
-        }
+        
+        // char bitmap_data[BLOCK_SIZE];
+        // memset(bitmap_data, '1', sizeof(bitmap_data));
+        // for (i = 0; i < SFS_N_DATA_BM; ++i) {
+        //     block_write((SFS_DATA_BM_INDX + i), bitmap_data);
+        // }
 
         log_msg("\tFinished bitmap inits\n");
 
@@ -108,8 +107,9 @@ void *sfs_init(struct fuse_conn_info *conn)
         char inode_buffer[BLOCK_SIZE];
         memset(inode_buffer, '0', sizeof(inode_buffer));
 
-        for(i=0; i < (SFS_N_INODES/4); ++i){
+        for(i=0; i < (SFS_N_INODE_BLOCKS); ++i){
             block_write((SFS_INODEBLOCK_INDX+i), inode_buffer);
+            log_msg("\t\tCreating inode block %d\n", i);
         }    
         log_msg("\tFinished inode block init\n");
 
@@ -142,7 +142,7 @@ void *sfs_init(struct fuse_conn_info *conn)
                 /*For each direct pointer*/
                 block_write(curr, dblock_buffer);
 
-                log_msg("\tI am writing a dblock. %d.\n", curr);
+                log_msg("\t\t*I am writing a dblock. %d.\n", curr);
                 
                 //blocks_temp[idx] = curr;
                 newInode.blocks[idx] = curr;
