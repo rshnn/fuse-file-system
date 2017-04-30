@@ -40,8 +40,8 @@ struct sfs_state {
     sfs_item* inode_cache;		// Array of sfs_items for all inodes
     sfs_item* dblock_cache;		// Array of sfs_items for all dblocks
 
-	list_node_t* free_inodes; 	// List of free inos (connected via sfs_item->node->next)
-	list_node_t* free_dblocks;  // Same for dblocks 
+  	list_node_t* free_inodes; 	// List of free inos (connected via sfs_item->node->next)
+  	list_node_t* free_dblocks;  // Same for dblocks 
 
     uint32_t root_ino; 			// ino of root dir.  "/"
 };

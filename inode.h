@@ -78,6 +78,7 @@
 */
 
 typedef struct __attribute__((packed)){
+    uint32_t    isvalid;            // IS THIS VALID?!
     uint32_t    ino;                // inode number 
     uint32_t    mode;               // type of inode: dir/file/direct 
     uint32_t    size;               // total size of dir/file in bytes 
