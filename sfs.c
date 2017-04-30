@@ -118,7 +118,7 @@ void *sfs_init(struct fuse_conn_info *conn)
 
         // Init data_block 
         char dblock_buffer[BLOCK_SIZE];
-        memset(dblock_buffer, '0', sizeof(dblock_buffer));
+        memset(dblock_buffer, 0, sizeof(dblock_buffer));
         /*Following for loop is to mass-allocate a fized number of dblocks*/
         // for(i=0; i < SFS_N_DBLOCKS; ++i){
         //     block_write((SFS_DATABLOCK_INDX+i), dblock_buffer);
@@ -129,78 +129,78 @@ void *sfs_init(struct fuse_conn_info *conn)
         int j, k, l, m, n, t;
         int curr = SFS_DATABLOCK_INDX;
 
-
         for(i=0; i< SFS_N_INODES; ++i){
-            /*For each inode...*/
+            /*Populating newInode.blocks with blockno's of allocated blocks. */
+            sfs_inode_t newInode;
+            memset(&newInode, 0, sizeof(sfs_inode_t));
             
             int idx = 0;
-            uint32_t blocks_temp[SFS_TOTAL_PTRS]; //array of pointers in inode
-
+            //uint32_t blocks_temp[SFS_TOTAL_PTRS]; //array of pointers in inode
+            newInode.blocks[idx];
 
             for(j=0; i< SFS_DIR_PTRS; ++j){
                 /*For each direct pointer*/
                 block_write(curr, dblock_buffer);
-                blocks_temp[idx] = curr;
+                //blocks_temp[idx] = curr;
+                newInode.blocks[idx] = curr;
                 idx++;
                 curr++;
             }
 
 
-            for(k=0; k < SFS_INDIR_PTRS; ++k){
-                /*For each indirect pointer */
-                blocks_temp[idx] = curr;
-                idx++;
+            // for(k=0; k < SFS_INDIR_PTRS; ++k){
+            //     /*For each indirect pointer */
+            //     blocks_temp[idx] = curr;
+            //     idx++;
                     
-                int indir_buffer[BLOCK_SIZE/4]; //block of block integers
+            //     int indir_buffer[BLOCK_SIZE/4]; //block of block integers
 
-                for(l=0; l<(BLOCK_SIZE/4); ++l){
-                    /*For each block pointed to*/
+            //     for(l=0; l<(BLOCK_SIZE/4); ++l){
+            //         /*For each block pointed to*/
 
-                    indir_buffer[l] = curr;
-                    block_write(curr, dblock_buffer);
-                    curr++;
-                }
+            //         indir_buffer[l] = curr;
+            //         block_write(curr, dblock_buffer);
+            //         curr++;
+            //     }
 
-                block_write(blocks_temp[idx-1], indir_buffer);
-
-
-            }
-
-            for(m=0; m< SFS_DINDIR_PTRS; ++m){
-                /* For each double indir pointer*/
-
-                int dindir_buffer[BLOCK_SIZE/4];
-
-                blocks_temp[idx] = curr;//block to store 128 single indirect pointers
-                idx++;
+            //     block_write(blocks_temp[idx-1], indir_buffer);
 
 
+            // }
 
-                for(k=0; k < SFS_INDIR_PTRS; ++k){
-                    /*For each indirect pointer */
-                   // blocks_temp[idx] = curr;
-                   // idx++;
-                    dindir_buffer[k] = curr;   
-                    int indir_buffer[BLOCK_SIZE/4];
+            // for(m=0; m< SFS_DINDIR_PTRS; ++m){
+            //     /* For each double indir pointer*/
 
-                    for(l=0; l<(BLOCK_SIZE/4); ++l){
-                        /*For each block pointed to*/
+            //     int dindir_buffer[BLOCK_SIZE/4];
 
-                        indir_buffer[l] = curr;
-                        block_write(curr, dblock_buffer);
-                        curr++;
-                    }
+            //     blocks_temp[idx] = curr;//block to store 128 single indirect pointers
+            //     idx++;
 
-                    block_write(dindir_buffer[k], indir_buffer);
 
-                }
 
-            }
+            //     for(k=0; k < SFS_INDIR_PTRS; ++k){
+            //         /*For each indirect pointer */
+            //       // blocks_temp[idx] = curr;
+            //       // idx++;
+            //         dindir_buffer[k] = curr;   
+            //         int indir_buffer[BLOCK_SIZE/4];
+
+            //         for(l=0; l<(BLOCK_SIZE/4); ++l){
+            //             /*For each block pointed to*/
+
+            //             indir_buffer[l] = curr;
+            //             block_write(curr, dblock_buffer);
+            //             curr++;
+            //         }
+
+            //         block_write(dindir_buffer[k], indir_buffer);
+
+            //     }
+
+            // }
 
             /*Write new inode (+blocks) back */
-            sfs_inode_t newInode;
-            memset(&newInode, '0', sizeof(sfs_inode_t));
-            memcpy(newInode.blocks, blocks_temp, 19*sizeof(uint32_t));
+
             update_inode_data(SFS_INODEBLOCK_INDX+ i, &newInode);
             
 
