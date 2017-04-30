@@ -392,7 +392,7 @@ int sfs_open(const char *path, struct fuse_file_info *fi)
         sfs_inode_t inode;
         get_inode(ino, &inode);
 
-        if(S_ISREG(inode, mode)){
+        if(S_ISREG(inode.mode)){
             retstat = 0;
         }
     }else{
@@ -617,7 +617,7 @@ int sfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offse
 
         free(dentries);
     } else {
-        log_msg("\tError: Path did not resolve to an ino.");
+        log_msg("\tError: Path did not resolve to an ino.\n");
     }
 
 
