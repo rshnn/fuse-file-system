@@ -99,6 +99,12 @@ void *sfs_init(struct fuse_conn_info *conn)
         for (i = 0; i < SFS_N_DATA_BM; ++i) {
             block_write((SFS_DATA_BM_INDX + i), bitmap_data);
         }
+
+
+
+        log_msg("Finished bitmap inits\n");
+
+
         // Init inode_block
 
         char inode_buffer[BLOCK_SIZE];
@@ -107,6 +113,9 @@ void *sfs_init(struct fuse_conn_info *conn)
         for(i=0; i < (SFS_N_INODES/4); ++i){
             block_write((SFS_INODEBLOCK_INDX+i), inode_buffer);
         }    
+
+
+        log_msg("Finished inode block init\n");
 
         // Init data_block 
 
@@ -196,7 +205,7 @@ void *sfs_init(struct fuse_conn_info *conn)
 
         }
 
-
+        log_msg("Finished allocating dblocks\n");
 
 
 
