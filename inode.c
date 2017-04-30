@@ -610,7 +610,7 @@ void remove_direntry(sfs_inode_t *inode, uint32_t ino_parent){
 					memcpy(&dentry, buffer + bytes_read, sizeof(sfs_direntry_t));
 
 
-					if (dentry.inode_number == inode->ino) {
+					if (dentry.ino == inode->ino) {
 						log_msg("\tFound the entry to be deleted.\n");
 						// Now i am going to overwrite it with the last dentry
 
