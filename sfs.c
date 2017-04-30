@@ -151,25 +151,28 @@ void *sfs_init(struct fuse_conn_info *conn)
             }
 
 
-            // for(k=0; k < SFS_INDIR_PTRS; ++k){
-            //     /*For each indirect pointer */
-            //     blocks_temp[idx] = curr;
-            //     idx++;
-                    
-            //     int indir_buffer[BLOCK_SIZE/4]; //block of block integers
-
-            //     for(l=0; l<(BLOCK_SIZE/4); ++l){
-            //         /*For each block pointed to*/
-
-            //         indir_buffer[l] = curr;
-            //         block_write(curr, dblock_buffer);
-            //         curr++;
-            //     }
-
-            //     block_write(blocks_temp[idx-1], indir_buffer);
+             for(k=0; k < SFS_INDIR_PTRS; ++k){
+                 /*For each indirect pointer */
+                 newInode.blocks[idx] = curr;
+                 idx++;
+                 curr++;
 
 
-            // }
+                 int indir_buffer[BLOCK_SIZE/4]; //block of block integers
+                 memset(indir_buffer,0, sizeof(indir_buffer));
+
+                 for(l=0; l<(BLOCK_SIZE/4); ++l){
+                     /*For each block pointed to*/
+                     log_msg("\t\t\t*I am writing an indirect block. %d.\n", curr);
+                     indir_buffer[l] = curr;
+                     block_write(curr, dblock_buffer);
+                     curr++;
+                 }
+
+                 block_write(newInode.blocks[idx-1], indir_buffer);
+
+
+             }
 
             // for(m=0; m< SFS_DINDIR_PTRS; ++m){
             //     /* For each double indir pointer*/
