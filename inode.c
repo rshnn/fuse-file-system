@@ -554,29 +554,29 @@ uint32_t get_new_ino(){
 *		return: none  
 * 	Changed implementation.  DO NOT CALL THIS
 */
-void free_ino(uint32_t ino){
-	log_msg("\nfree_ino()...\n");
+// void free_ino(uint32_t ino){
+// 	log_msg("\nfree_ino()...\n");
 
 
-	if (ino < SFS_N_INODES){
+// 	if (ino < SFS_N_INODES){
 
-		/* Checking if this ino is already in the free_list. */
-		if((SFS_DATA->inode_cache[ino].node.next 
-			== SFS_DATA->inode_cache[ino].node.prev)
-			&& (SFS_DATA->free_inodes 
-				!= &(SFS_DATA->inode_cache[ino].node)) ) {
+// 		/* Checking if this ino is already in the free_list. */
+// 		if((SFS_DATA->inode_cache[ino].node.next 
+// 			== SFS_DATA->inode_cache[ino].node.prev)
+// 			&& (SFS_DATA->free_inodes 
+// 				!= &(SFS_DATA->inode_cache[ino].node)) ) {
 
-			/* Add it to the tail of the free list.*/
-			list_add_tail(&(SFS_DATA->inode_cache[ino].node), SFS_DATA->free_inodes);
-			log_msg("\tInode successfully freed.\n");
+// 			/* Add it to the tail of the free list.*/
+// 			list_add_tail(&(SFS_DATA->inode_cache[ino].node), SFS_DATA->free_inodes);
+// 			log_msg("\tInode successfully freed.\n");
 
-		} else {
-			log_msg("\tError: Attempted to free an already free inode.\n");
-		}
-	}else{
-		log_msg("\tAttempted to free an invalid ino.\n");
-	}
-}
+// 		} else {
+// 			log_msg("\tError: Attempted to free an already free inode.\n");
+// 		}
+// 	}else{
+// 		log_msg("\tAttempted to free an invalid ino.\n");
+// 	}
+// }
 
 
 
@@ -586,35 +586,33 @@ void free_ino(uint32_t ino){
 *		return: block number 
 * 	Changed implementation.  DO NOT CALL THIS 
 */
-uint32_t get_new_blockno(){
+// uint32_t get_new_blockno(){
 
-	log_msg("\nget_new_blockno()..\n");
+// 	log_msg("\nget_new_blockno()..\n");
 
-	// Very similar logic to get_new_ino()
-	if(list_empty(SFS_DATA->free_dblocks)){
-		log_msg("\tError:  No more data blocks available.\n");
-	}else{
+// 	// Very similar logic to get_new_ino()
+// 	if(list_empty(SFS_DATA->free_dblocks)){
+// 		log_msg("\tError:  No more data blocks available.\n");
+// 	}else{
 
-		list_node_t* my_dblock = SFS_DATA->free_dblocks;
-		list_del(SFS_DATA->free_dblocks);
-		SFS_DATA->free_dblocks - my_dblock->next;
+// 		list_node_t* my_dblock = SFS_DATA->free_dblocks;
+// 		list_del(SFS_DATA->free_dblocks);
+// 		SFS_DATA->free_dblocks - my_dblock->next;
 
-		INIT_LIST_HEAD(my_dblock);
+// 		INIT_LIST_HEAD(my_dblock);
 
-		sfs_item* dblock_item = list_entry(my_dblock, sfs_item, node);
+// 		sfs_item* dblock_item = list_entry(my_dblock, sfs_item, node);
 
-		if(dblock_item != NULL){
-			log_msg("\tFree dblock found successfully.\n");
-			return dblock_item->id;
-		}else{
-			log_msg("\tError: Free dblock could not be found.\n");
-		}
-	}
+// 		if(dblock_item != NULL){
+// 			log_msg("\tFree dblock found successfully.\n");
+// 			return dblock_item->id;
+// 		}else{
+// 			log_msg("\tError: Free dblock could not be found.\n");
+// 		}
+// 	}
 
-	return SFS_INVLD_DBNO;
-
-
-}
+// 	return SFS_INVLD_DBNO;
+// }
 
 /**
 *	free_blockno()
@@ -622,30 +620,30 @@ uint32_t get_new_blockno(){
 *		return: none  
 * 	Changed implementation.  DO NOT CALL THIS 
 */
-void free_blockno(uint32_t dbno){
-	log_msg("\nfree_ino()...\n");
+// void free_blockno(uint32_t dbno){
+// 	log_msg("\nfree_ino()...\n");
 
-	// Very similar logic to free_ino()
-	if (dbno < SFS_N_DBLOCKS){
+// 	// Very similar logic to free_ino()
+// 	if (dbno < SFS_N_DBLOCKS){
 
-		/* Check if this dblock is already free */
-		if((SFS_DATA->dblock_cache[dbno].node.next 
-			== SFS_DATA->dblock_cache[dbno].node.prev)
-			&& (SFS_DATA->free_inodes 
-				!= &(SFS_DATA->dblock_cache[dbno].node)) ) {
+// 		/* Check if this dblock is already free */
+// 		if((SFS_DATA->dblock_cache[dbno].node.next 
+// 			== SFS_DATA->dblock_cache[dbno].node.prev)
+// 			&& (SFS_DATA->free_inodes 
+// 				!= &(SFS_DATA->dblock_cache[dbno].node)) ) {
 
-			list_add_tail(&(SFS_DATA->dblock_cache[dbno].node), SFS_DATA->free_inodes);
-			log_msg("\tInode successfully freed.\n");
+// 			list_add_tail(&(SFS_DATA->dblock_cache[dbno].node), SFS_DATA->free_inodes);
+// 			log_msg("\tInode successfully freed.\n");
 
-		} else {
-			log_msg("\tError: Attempted to free an already free dblock.\n");
-		}
-	}else{
-		log_msg("\tError: Attempted to free an invalid dblock.\n");
-	}
+// 		} else {
+// 			log_msg("\tError: Attempted to free an already free dblock.\n");
+// 		}
+// 	}else{
+// 		log_msg("\tError: Attempted to free an invalid dblock.\n");
+// 	}
 
 
-}
+// }
 
 
 

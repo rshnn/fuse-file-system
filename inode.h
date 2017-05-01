@@ -86,7 +86,6 @@ typedef struct __attribute__((packed)){
     uint32_t    nlink;              // number of hard links 
     uint32_t    current_unused_indx;     // index of blocks array thats is currently unsed
     uint32_t    current_unused_bno; // blockno of next unsed block allocated to this inode    
-    /* Do we need any of these */
     uint32_t    time_access;
     uint32_t    time_mod;
     uint32_t    time_change;
@@ -113,15 +112,15 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 uint32_t ino_from_path(const char *path);
 uint32_t ino_from_path_dir(const char *path, uint32_t ino_parent);
 
-void update_inode_bitmap(uint32_t ino, char ch);
-void update_block_bitmap(uint32_t bno, char ch);
+// void update_inode_bitmap(uint32_t ino, char ch);
+// void update_block_bitmap(uint32_t bno, char ch);
 void update_inode_data(uint32_t ino, sfs_inode_t *inode);
 void update_block_data(uint32_t bno, char* buffer);
 
 uint32_t get_new_ino();
-void free_ino(uint32_t ino);
-uint32_t get_new_blockno();
-void free_blockno(uint32_t dbno);
+// void free_ino(uint32_t ino);
+// uint32_t get_new_blockno();
+// void free_blockno(uint32_t dbno);
 
 
 void create_direntry(const char *name, sfs_inode_t *inode, uint32_t ino_parent);
