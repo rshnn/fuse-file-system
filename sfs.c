@@ -147,7 +147,7 @@ void *sfs_init(struct fuse_conn_info *conn)
 
                  for(l=0; l<(BLOCK_SIZE/4); ++l){
                      /*For each block pointed to*/
-                     log_msg("\t\t\t*I am writing an indirect block. %d.\n", curr);
+                     log_msg("\t\t\t*I am writing an indirect dblock. %d.\n", curr);
                      indir_buffer[l] = curr;
                      block_write(curr, dblock_buffer);
                      curr++;

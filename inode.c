@@ -326,7 +326,7 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 		uint32_t indir_start_bno 	= indir_bno++;
 
 		
-		for (i; (bytes_written < size) && (i < (BLOCK_SIZE/4) );++i) {
+		for (i; (bytes_written < size) && (i < (BLOCK_SIZE/4) );i++) {
 
 			if (i >= inode_data->num_blocks) {
 				// inode_data->blocks[i] = get_new_blockno();
