@@ -146,7 +146,7 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 
 		launch_indir = 1;
 		if(start_block_idx > 15){
-			i = start_block_idx - 15;
+			i = start_block_idx - 16;
 		}else {
 			i = 0;
 		}
