@@ -20,10 +20,10 @@
 // #define BLOCK_SIZE 512           // Defined in block.h
 
 
-#define SFS_N_INODES        4      // Number inodes in the FS
+#define SFS_N_INODES        16      // Number inodes in the FS
 #define SFS_INODES_P_BLOCK  4       // Number of inodes per block 
 #define SFS_INODE_SIZE      128     // Size of an inode struct in bytes
-#define SFS_N_INODE_BLOCKS  1      // Total number of inode blocks
+#define SFS_N_INODE_BLOCKS  4      // Total number of inode blocks
 
 /* Specifications of inode block array */
 #define SFS_DIR_PTRS        16      // Number of direct pointers

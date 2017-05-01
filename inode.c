@@ -82,6 +82,8 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 
 	log_msg("\nread_inode()...\n");
 
+	log_msg("\tinode size is %d.  Paramter size is %d. \n", inode->size, size);
+
 	int i = 0;
 	int orig_offset = offset;
 	char tmp_buf[BLOCK_SIZE];
@@ -96,11 +98,11 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 	int launch_dindir = 0;
 
 	if(start_block_idx > 15){
-		log_msg("\tLaunching indir case 1.\n");
+		log_msg("\tR:Launching indir case 1.\n");
 		launch_indir = 1;
 
 		if(start_block_idx > (128+16)){
-			log_msg("\tNvm. Launching dindir.\n");
+			log_msg("\tR:Nvm. Launching dindir.\n");
 			launch_indir = 0;
 			launch_dindir = 1;
 		}
@@ -113,7 +115,7 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 
 		if (offset != 0) {
 
-			log_msg("\tEntering main case.\n");
+			log_msg("\tR:Entering main case.\n");
 
 			bytes_to_read = (BLOCK_SIZE - offset) > inode->size ? inode->size : (BLOCK_SIZE - inode->size);
 			block_read(inode->blocks[i], tmp_buf);
@@ -128,8 +130,8 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 
 		} else {
 
-			log_msg("\tEntering else case.\n");
-			bytes_to_read = (inode->size - read_byte_count) > BLOCK_SIZE ? BLOCK_SIZE : (inode->size - bytes_to_read);
+			log_msg("\tR:Entering else case.\n");
+			bytes_to_read = (inode->size - read_byte_count) > BLOCK_SIZE ? BLOCK_SIZE : (inode->size - read_byte_count);
 			block_read(inode->blocks[i], tmp_buf);
 			log_msg("\ttmp_buf = %s, bytes to read %d\n", tmp_buf, bytes_to_read);
 			memcpy(buffer + read_byte_count, tmp_buf, bytes_to_read);
@@ -149,7 +151,7 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 	// Didnt finish writing with just direct blocks
 	
 	if(read_byte_count < inode->size && start_block_idx < 128+15){
-		log_msg("\tLaunching indir case 2.\n");
+		log_msg("\tR:Launching indir case 2.\n");
 
 		launch_indir = 1;
 		if(start_block_idx > 15){
@@ -163,7 +165,7 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 
 	if(launch_indir){
 		
-		log_msg("\tLaunching indir DOING IT. i is %d\n", i);
+		log_msg("\tR:Launching indir DOING IT. i is %d\n", i);
 
 
 		uint32_t indir_bno 			= inode->blocks[16];
@@ -186,7 +188,7 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 
 			} else {
 
-				bytes_to_read = (inode->size - read_byte_count) > BLOCK_SIZE ? BLOCK_SIZE : (inode->size - bytes_to_read);
+				bytes_to_read = (inode->size - read_byte_count) > BLOCK_SIZE ? BLOCK_SIZE : (inode->size - read_byte_count);
 				block_read(inode->blocks[16]+i+1, tmp_buf);
 				log_msg("\ttmp_buf = %s\n", tmp_buf);
 				memcpy(buffer + read_byte_count, tmp_buf, bytes_to_read);
@@ -250,6 +252,8 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 	int launch_dindir = 0;
 
 	if(start_block_idx > 15){
+		log_msg("\tW:Launching indir case 1.\n");
+
 		launch_indir = 1;
 
 		if(start_block_idx > (128+16)){
@@ -299,6 +303,8 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 	// Didnt finish writing with just direct blocks
 	
 	if(bytes_written < size && start_block_idx < 128+15){
+		log_msg("\tW:Launching indir case 2.\n");
+
 		launch_indir = 1;
 		if(start_block_idx > 15){
 			i = start_block_idx - 15;
@@ -310,6 +316,8 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 
 
 	if(launch_indir){
+		log_msg("\tW:Launching indir DOING IT. i is %d\n", i);
+
 		
 		uint32_t indir_bno 			= inode_data->blocks[16];
 		uint32_t indir_start_bno 	= indir_bno++;
