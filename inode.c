@@ -259,6 +259,8 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 	/* For loop dor dirent blocks [0-15] */
 
 	for (i = start_block_idx; (bytes_written < size) && (i < SFS_DIR_PTRS); ++i) {
+
+
 		if (i >= inode_data->num_blocks) {
 			// inode_data->blocks[i] = get_new_blockno();
 			++num_new_blocks;
@@ -270,6 +272,7 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 			block_read(inode_data->blocks[i], tmp_buf);
 			memcpy(tmp_buf + offset, buffer, bytes_to_write);
 			update_block_data(inode_data->blocks[i], tmp_buf);
+			log_msg("\tW:Writing to block %d.\n", inode_data->blocks[i]);
 
 			bytes_written += bytes_to_write;
 
@@ -280,6 +283,7 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 			int bytes_to_write = (size - bytes_written) > BLOCK_SIZE ? BLOCK_SIZE : (size - bytes_written);
 			memcpy(tmp_buf, buffer + bytes_written, bytes_to_write);
 			update_block_data(inode_data->blocks[i], tmp_buf);
+			log_msg("\tW:Writing to block %d.\n", inode_data->blocks[i]);
 
 			log_msg("\tUpdated block %d offset = %d num bytes written = %d\n",inode_data->blocks[i], offset, bytes_to_write);
 
