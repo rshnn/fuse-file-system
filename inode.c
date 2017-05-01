@@ -304,7 +304,7 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 		i = 0;
 	}
 
-
+	i=0;
 
 	if(launch_indir){
 		log_msg("\tW:Launching indir DOING IT. i is %d\n", i);
