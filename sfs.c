@@ -87,22 +87,6 @@ void *sfs_init(struct fuse_conn_info *conn)
         /*DO INIT STUFF*/
         int i = 0;
 
-        // Init bitmaps (inode and data)
-        // int i = 0;
-        // char bitmap_inodes[BLOCK_SIZE];
-        // memset(bitmap_inodes, '1', sizeof(bitmap_inodes));
-        // block_write((SFS_INODE_BM_INDX), bitmap_inodes);
-        
-        
-        // char bitmap_data[BLOCK_SIZE];
-        // memset(bitmap_data, '1', sizeof(bitmap_data));
-        // for (i = 0; i < SFS_N_DATA_BM; ++i) {
-        //     block_write((SFS_DATA_BM_INDX + i), bitmap_data);
-        // }
-
-        log_msg("\tFinished bitmap inits\n");
-
-
         // Init inode_block
         char inode_buffer[BLOCK_SIZE];
         memset(inode_buffer, '0', sizeof(inode_buffer));
@@ -220,17 +204,6 @@ void *sfs_init(struct fuse_conn_info *conn)
 
 
         // Init root inode ("/")
-
-        // if (block_read(SFS_INODE_BM_INDX, bitmap_inodes) > 0) {
-        //     bitmap_inodes[0] = '0';
-        //     block_write(SFS_INODE_BM_INDX, bitmap_inodes);
-        // }
-
-        // if (block_read(SFS_DATA_BM_INDX, bitmap_data) > 0) {
-        //     bitmap_data[0] = '0';
-        //     block_write(SFS_DATA_BM_INDX, bitmap_data);
-        // }
-
 
 
         /* get inode 0 */

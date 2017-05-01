@@ -26,12 +26,6 @@
 #include <stdint.h>
 #include "list.h"
 
-// typedef struct{
-// 	int id;  			// id = ino for inodes or blocknum for dblocks
-// 	list_node_t node;
-// }sfs_item;
-
-
 
 struct sfs_state {
     FILE *logfile;

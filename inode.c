@@ -296,9 +296,12 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 		launch_indir = 1;
 		if(start_block_idx > 15){
 			i = start_block_idx - 15;
+			log_msg("\tChanging i to %d.  Start block index is %d\n", i, start_block_idx);
 		}else {
 			i = 0;
 		}
+	}else{
+		i = 0;
 	}
 
 
