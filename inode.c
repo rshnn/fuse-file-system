@@ -141,7 +141,7 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 	
 	// Didnt finish writing with just direct blocks
 	
-	if(read_byte_count < inode->size && start_block_idx < 128+15){
+	if(read_byte_count < size && start_block_idx < 128+15){
 		log_msg("\tR:Launching indir case 2.\n");
 
 		launch_indir = 1;
