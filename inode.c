@@ -152,11 +152,11 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 		}
 	}
 
-
+	log_msg("\tR:SIZE is %d, inode->size is %d\n", size, inode->size);
 
 	if(launch_indir){
 		
-		log_msg("\tW:Launching indir DOING IT. i is %d.  Reading from indir at blockno: %d\n", i, inode->blocks[16]);
+		log_msg("\tR:Launching indir DOING IT. i is %d.  Reading from indir at blockno: %d\n", i, inode->blocks[16]);
 
 
 		uint32_t indir_bno 			= inode->blocks[16];
