@@ -71,6 +71,7 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 	log_msg("\nread_inode()...\n");
 
 	log_msg("\tinode size is %d.  Paramter size is %d. \n", inode->size, size);
+	log_msg("\tR:SIZE is %d, inode->size is %d\n", size, inode->size);
 
 	int i = 0;
 	int orig_offset = offset;
@@ -152,7 +153,6 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 		}
 	}
 
-	log_msg("\tR:SIZE is %d, inode->size is %d\n", size, inode->size);
 
 	if(launch_indir){
 		
