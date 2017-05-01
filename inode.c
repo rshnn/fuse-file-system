@@ -326,7 +326,7 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 		uint32_t indir_start_bno 	= indir_bno++;
 
 		
-		for (i; (bytes_written < size) && (i < (BLOCK_SIZE/4) );i++) {
+		for (i; (bytes_written < size) && (i < (BLOCK_SIZE/4) );++i) {
 
 			if (i >= inode_data->num_blocks) {
 				// inode_data->blocks[i] = get_new_blockno();
@@ -336,10 +336,10 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 
 			if (offset != 0) {
 				int bytes_to_write = (BLOCK_SIZE - offset) > size ? size : (BLOCK_SIZE - offset);
-				block_read(inode_data->blocks[16]+i+1, tmp_buf);
-				log_msg("\tW:Handling this blockno: %d\n", inode_data->blocks[16]+i+1);
+				block_read(inode_data->blocks[16]+i, tmp_buf);
+				log_msg("\tW:Handling this blockno: %d\n", inode_data->blocks[16]+i);
 				memcpy(tmp_buf + offset, buffer, bytes_to_write);
-				update_block_data(inode_data->blocks[16]+i+1, tmp_buf);
+				update_block_data(inode_data->blocks[16]+i, tmp_buf);
 
 				bytes_written += bytes_to_write;
 
@@ -349,10 +349,10 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 			} else {
 				int bytes_to_write = (size - bytes_written) > BLOCK_SIZE ? BLOCK_SIZE : (size - bytes_written);
 				memcpy(tmp_buf, buffer + bytes_written, bytes_to_write);
-				update_block_data(inode_data->blocks[16]+i+1, tmp_buf);
-				log_msg("\tW:Handling this blockno: %d\n", inode_data->blocks[16]+i+1);
+				update_block_data(inode_data->blocks[16]+i, tmp_buf);
+				log_msg("\tW:Handling this blockno: %d\n", inode_data->blocks[16]+i);
 
-				log_msg("\tUpdated block %d offset = %d num bytes written = %d\n",inode_data->blocks[16]+i+1, offset, bytes_to_write);
+				log_msg("\tUpdated block %d offset = %d num bytes written = %d\n",inode_data->blocks[16]+i, offset, bytes_to_write);
 
 				bytes_written += bytes_to_write;
 			}
