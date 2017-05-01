@@ -313,13 +313,11 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 		}else {
 			i = 0;
 		}
-	}else{
-		i = 0;
 	}
 
 
 	if(launch_indir){
-		log_msg("\tW:Launching indir. i is %d.\n\tReading from indir at blockno: %d\n", i, inode_data->blocks[16]);
+		log_msg("\tW:Launching indir. i is %d.\tReading from indir at blockno: %d\n", i, inode_data->blocks[16]);
 
 		
 		uint32_t indir_bno 			= inode_data->blocks[16];
