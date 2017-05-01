@@ -32,7 +32,7 @@
 
 #include "log.h"
 #include "inode.h"
-// #include "inode.c"
+#include "inode.c"
 
 #define SFS_SUPERSECRET 518
 
