@@ -156,7 +156,7 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 
 	if(launch_indir){
 		
-		log_msg("\tR:Launching indir DOING IT. i is %d\n", i);
+		log_msg("\tW:Launching indir DOING IT. i is %d.  Reading from indir at blockno: %d\n", i, inode->blocks[16]);
 
 
 		uint32_t indir_bno 			= inode->blocks[16];
@@ -247,7 +247,7 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 	int launch_dindir = 0;
 
 	if(start_block_idx > 15){
-		log_msg("\tW:Launching indir case 1.\n");
+		// log_msg("\tW:Launching indir case 1.\n");
 
 		launch_indir = 1;
 
@@ -304,12 +304,12 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 	if(bytes_written < size && start_block_idx < 128+15){
 	// if(bytes_written < size){
 
-		log_msg("\tW:Launching indir case 2.\n");
+		// log_msg("\tW:Launching indir case 2.\n");
 
 		launch_indir = 1;
 		if(start_block_idx > 15){
 			i = start_block_idx - 15;
-			log_msg("\tChanging i to %d.  Start block index is %d\n", i, start_block_idx);
+			log_msg("\tW:Changing i to %d.  Start block index is %d\n", i, start_block_idx);
 		}else {
 			i = 0;
 		}
@@ -319,7 +319,7 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 
 
 	if(launch_indir){
-		log_msg("\tW:Launching indir DOING IT. i is %d.  Reading from indir at blockno: %d\n", i, inode_data->blocks[16]);
+		log_msg("\tW:Launching indir. i is %d.\n\tReading from indir at blockno: %d\n", i, inode_data->blocks[16]);
 
 		
 		uint32_t indir_bno 			= inode_data->blocks[16];
