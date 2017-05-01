@@ -165,7 +165,7 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 			if (offset != 0) {
 				bytes_to_read = (BLOCK_SIZE - offset) > inode->size ? inode->size : (BLOCK_SIZE - inode->size);
 				block_read(inode->blocks[16]+i+1, tmp_buf);
-				log_msg("\tR:Handling this blockno: %d\n", inode_data->blocks[16]+i+1);
+				log_msg("\tR:Handling this blockno: %d\n", inode->blocks[16]+i+1);
 
 				memcpy(buffer, tmp_buf + offset, bytes_to_read);
 
@@ -180,7 +180,7 @@ int read_inode(sfs_inode_t* inode, char* buffer, int size, int offset){
 
 				bytes_to_read = (inode->size - read_byte_count) > BLOCK_SIZE ? BLOCK_SIZE : (inode->size - read_byte_count);
 				block_read(inode->blocks[16]+i+1, tmp_buf);
-				log_msg("\tR:Handling this blockno: %d\n", inode_data->blocks[16]+i+1);
+				log_msg("\tR:Handling this blockno: %d\n", inode->blocks[16]+i+1);
 
 				log_msg("\ttmp_buf = %s\n", tmp_buf);
 				memcpy(buffer + read_byte_count, tmp_buf, bytes_to_read);
