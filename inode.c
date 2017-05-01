@@ -294,8 +294,8 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 	
 	// Didnt finish writing with just direct blocks
 	
-	// if(bytes_written < size && start_block_idx < 128+15){
-	if(bytes_written < size){
+	if(bytes_written < size && start_block_idx < 128+15){
+	// if(bytes_written < size){
 
 		log_msg("\tW:Launching indir case 2.\n");
 
@@ -310,7 +310,6 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 		i = 0;
 	}
 
-	i=0;
 
 	if(launch_indir){
 		log_msg("\tW:Launching indir DOING IT. i is %d\n", i);
