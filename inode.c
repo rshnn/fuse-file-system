@@ -222,11 +222,11 @@ int write_inode(sfs_inode_t *inode_data, const char* buffer, int size, int offse
 
 	log_msg("\nwrite_inode()...\n");
 
-	int capacity = (SFS_DIR_PTRS - (offset / BLOCK_SIZE))*BLOCK_SIZE - (offset % BLOCK_SIZE);
-	if (size > capacity) {
-		log_msg("\tError: Write request too large! Limit is %d\n", capacity);
-		return 0;
-	}
+	// int capacity = (SFS_DIR_PTRS - (offset / BLOCK_SIZE))*BLOCK_SIZE - (offset % BLOCK_SIZE);
+	// if (size > capacity) {
+	// 	log_msg("\tError: Write request too large! Limit is %d\n", capacity);
+	// 	return 0;
+	// }
 
 	int i = 0;
 	int orig_offset = offset;
