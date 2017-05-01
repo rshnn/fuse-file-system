@@ -51,14 +51,8 @@
 #define SFS_N_DBLOCKS       SFS_N_INODES * SFS_DINDIR_BLOCKS       // Number of blocks for data in the FS 
 
 
-/* Specifications of bitmaps.  Number of blocks required for */
-// #define SFS_N_DATA_BM       (SFS_N_DBLOCKS / (BLOCK_SIZE * 8))
-// #define SFS_N_INODE_BM      1
-
 /* BlockNum Indexes */
 #define SFS_SUPERBLOCK_INDX     0       // Only requires 1 block  
-// #define SFS_INODE_BM_INDX       1       // ''
-// #define SFS_DATA_BM_INDX        2       // ''
 #define SFS_INODEBLOCK_INDX     1    // 
 #define SFS_DATABLOCK_INDX      SFS_INODEBLOCK_INDX + SFS_N_INODE_BLOCKS
 
